@@ -1,0 +1,149 @@
+{
+  "url": "about:blank",
+  "cookies": [
+    {
+      "name": "tt_csrf_token",
+      "value": "o6kQxZQt-9VqI7W-3seBRNmDnvIwoQVFq5tk",
+      "domain": ".tiktok.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "tt_chain_token",
+      "value": "T5rK9zC6z22MJch4XeUp7g==",
+      "domain": ".tiktok.com",
+      "path": "/",
+      "expires": 1760723377.733664,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "tiktok_webapp_theme_source",
+      "value": "auto",
+      "domain": ".www.tiktok.com",
+      "path": "/",
+      "expires": 1771091379,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "tiktok_webapp_theme",
+      "value": "light",
+      "domain": ".www.tiktok.com",
+      "path": "/",
+      "expires": 1771091379,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "ttwid",
+      "value": "1%7CMkIJmI651ztjj7HpjA_6hdtNb8SNIK3aZXvi45kGs84%7C1745171379%7C72e991682f5978680709ba00fa22f0802f32b42faf0bc0e59aa5953b0473bb8e",
+      "domain": ".tiktok.com",
+      "path": "/",
+      "expires": 1776707379.403233,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "msToken",
+      "value": "ns6UhZgynWznpBVlXzuVOkv4x8AU_fgItA2kSTAbT5Dj4hkJnzreT5_l_R4zdW5OdDILzHp4YiXL4YWp5OAXzsQUpzWgK_M0gWwis77UMpKlm8J-Q75oa1RPEUwi3UpN-xvN8WbtVl7cbwh-yarL538n",
+      "domain": "www.tiktok.com",
+      "path": "/",
+      "expires": 1752947382,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "perf_feed_cache",
+      "value": "{%22expireTimestamp%22:1745341200000%2C%22itemIds%22:[%227486681932072275243%22%2C%227481432580756114696%22]}",
+      "domain": ".www.tiktok.com",
+      "path": "/",
+      "expires": 1745603383,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "passport_csrf_token",
+      "value": "801b43c68e25a115d6951a4fd421ec8e",
+      "domain": ".tiktok.com",
+      "path": "/",
+      "expires": 1750355386.5376,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "passport_csrf_token_default",
+      "value": "801b43c68e25a115d6951a4fd421ec8e",
+      "domain": ".tiktok.com",
+      "path": "/",
+      "expires": 1750355386.537703,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "s_v_web_id",
+      "value": "verify_m9pxzq1y_p0JxCxPr_7jud_4URo_8g0d_bYGBuIqbca6o",
+      "domain": ".tiktok.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "d_ticket",
+      "value": "d6b6da0163b86560ae401005a6ce61cedd94b",
+      "domain": ".tiktok.com",
+      "path": "/",
+      "expires": 1776707408.413571,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "msToken",
+      "value": "GmHP5y3SZynpZCP6NpC8mQFkjDVboQcrx-cTEPhoQmrWT9y6JXsnKwcsC1thQKqFkqOZ0BSPRrAnur7vlCF6CiHBs9xL6LSeq9INxftModLmf6tHL4nR520trH2yuAsf9earUKcLSGWb1ziVRhbjoQP7",
+      "domain": ".tiktok.com",
+      "path": "/",
+      "expires": 1746035406.413659,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    }
+  ],
+  "network": [
+    {
+      "url": "blob:https://www.tiktok.com/2d7c2ae5-4a91-4bd6-b3d1-afa3416f9ff9",
+      "request_headers": {
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+        "referer": ""
+      },
+      "response_headers": {
+        "content-type": "image/webp",
+        "content-length": "7698"
+      }
+    },
+    {
+      "url": "blob:https://www.tiktok.com/239535f8-3d99-4f98-9db0-80cfff337d02",
+      "request_headers": {
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+        "referer": ""
+      },
+      "response_headers": {
+        "content-type": "image/webp",
+        "content-length": "4026"
+      }
+    }
+  ]
+}

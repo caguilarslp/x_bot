@@ -2,3 +2,6 @@ playwright
 playwright-stealth
 beautifulsoup4
 anticaptchaofficial
+faker
+selenium
+webdriver-manager

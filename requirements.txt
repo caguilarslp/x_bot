@@ -5,3 +5,5 @@ anticaptchaofficial
 faker
 selenium
 webdriver-manager
+twocaptcha
+requests

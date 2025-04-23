@@ -34,7 +34,7 @@ DEFAULT_BLACKLIST_DURATION = 24 * 60 * 60  # segundos
 # Proxies organizados por país
 PROXY_LISTS = {
     "mexico": [
-        f"socks5h://user-spk2w2zeri-country-mx-city-mexico_city-session-{i}:r5GaBmB79hIfq3zhy~@gate.smartproxy.com:7000"
+        f"socks5h://user-spk2w2zeri-country-mx-city-mexico_city-session-{i}:r5GaBmB79hIfq3zhy~@gate.decodo.com:7000"
         for i in range(1, 51)
     ],
     #"united_states": [],  # Placeholder para proxies de EE.UU.

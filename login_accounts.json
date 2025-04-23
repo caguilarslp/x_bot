@@ -3,22 +3,12 @@
       {
         "username": "antonioreverteandujar@gmx.com",
         "password": "xJHuc@EhMFNBgJd3",
-        "description": "Cuenta principal para automatización"
+        "recover_user": "AndujarReverte"
       },
       {
-        "username": "martin.rodriguez87@outlook.com",
-        "password": "P@ssw0rd2025!Secure",
-        "description": "Cuenta de testeo para engagement"
-      },
-      {
-        "username": "social_media_test_42@protonmail.com",
-        "password": "Kj8$bQ9pLm2!zXcV",
-        "description": "Cuenta para pruebas de API"
-      },
-      {
-        "username": "laura.tech.tester@gmail.com",
-        "password": "T3ch#T3ster2025!",
-        "description": "Cuenta para analítica"
+        "username": "antonela.r87@gmx.com",
+        "password": "xJHuc@Ed3Mn",
+        "recover_user": "AntonelaMa88"
       }
     ]
   }

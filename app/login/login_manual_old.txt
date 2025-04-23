@@ -1,0 +1,563 @@
+
+# import os
+# import json
+# import time
+# import random
+# import asyncio
+# import logging
+# from datetime import datetime
+# from pathlib import Path
+# from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+
+# # Configuración de logging
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format="%(asctime)s [%(levelname)s] %(message)s"
+# )
+
+# # Función para cargar las cuentas desde el archivo JSON
+# def load_accounts():
+#     accounts_file = Path('login_accounts.json')
+#     if not accounts_file.exists():
+#         logging.info("No se encontró el archivo login_accounts.json. Creando uno de ejemplo...")
+#         example_accounts = {
+#             "accounts": [
+#                 {
+#                     "username": "antonioreverteandujar@gmx.com",
+#                     "password": "xJHuc@EhMFNBgJd3",
+#                     "description": "Cuenta principal para automatización"
+#                 },
+#                 {
+#                     "username": "martin.rodriguez87@outlook.com",
+#                     "password": "P@ssw0rd2025!Secure",
+#                     "description": "Cuenta de testeo para engagement"
+#                 },
+#                 {
+#                     "username": "social_media_test_42@protonmail.com",
+#                     "password": "Kj8$bQ9pLm2!zXcV",
+#                     "description": "Cuenta para pruebas de API"
+#                 },
+#                 {
+#                     "username": "laura.tech.tester@gmail.com",
+#                     "password": "T3ch#T3ster2025!",
+#                     "description": "Cuenta para analítica"
+#                 }
+#             ]
+#         }
+#         with open(accounts_file, 'w', encoding='utf-8') as f:
+#             json.dump(example_accounts, f, indent=2)
+        
+#         logging.info(f"Se ha creado el archivo {accounts_file} con cuentas de ejemplo.")
+#         logging.info("Por favor, edita este archivo con tus cuentas reales antes de continuar.")
+#         return example_accounts["accounts"]
+    
+#     try:
+#         with open(accounts_file, 'r', encoding='utf-8') as f:
+#             accounts_data = json.load(f)
+#             return accounts_data.get("accounts", [])
+#     except json.JSONDecodeError:
+#         logging.error("Error: El archivo login_accounts.json no tiene un formato JSON válido.")
+#         return []
+#     except Exception as e:
+#         logging.error(f"Error al cargar el archivo de cuentas: {e}")
+#         return []
+
+# # Función para seleccionar una cuenta de la lista
+# def select_account(accounts):
+#     if not accounts:
+#         logging.error("No hay cuentas disponibles en el archivo login_accounts.json")
+#         return None, None
+    
+#     print("\n=== Cuentas Disponibles ===")
+#     for i, account in enumerate(accounts):
+#         username = account.get("username", "Sin nombre de usuario")
+#         description = account.get("description", "")
+#         print(f"{i+1}. {username} - {description}")
+    
+#     while True:
+#         try:
+#             selection = input("\nSelecciona el número de la cuenta que quieres usar (o 'q' para salir): ")
+#             if selection.lower() == 'q':
+#                 return None, None
+            
+#             index = int(selection) - 1
+#             if 0 <= index < len(accounts):
+#                 selected_account = accounts[index]
+#                 return selected_account.get("username"), selected_account.get("password")
+#             else:
+#                 print(f"Error: Por favor, selecciona un número entre 1 y {len(accounts)}")
+#         except ValueError:
+#             print("Error: Por favor, introduce un número válido")
+
+# # Función para agregar retraso de aspecto humano (tiempo variable)
+# async def human_delay(min_ms=500, max_ms=2000):
+#     delay = random.uniform(min_ms, max_ms) / 1000
+#     await asyncio.sleep(delay)
+
+# # Función para simular escritura humana con velocidad variable
+# async def type_human_like(page, selector, text):
+#     try:
+#         await page.focus(selector)
+        
+#         # Borrar cualquier texto existente primero
+#         await page.fill(selector, '')
+#         await human_delay(200, 600)
+        
+#         # Escribir cada carácter con retraso variable
+#         for char in text:
+#             await page.type(selector, char, delay=50 + random.randint(50, 150))
+            
+#             # Ocasionalmente hacer una pausa como lo haría un humano
+#             if random.random() < 0.2:
+#                 await human_delay(200, 1000)
+#     except Exception as e:
+#         logging.error(f"Error al escribir texto: {e}")
+#         # Intentar una alternativa si el método normal falla
+#         try:
+#             await page.fill(selector, text)
+#         except Exception:
+#             logging.error("No se pudo escribir el texto.")
+
+# # Función para esperar a un selector con posibilidad de continuar si no aparece
+# async def wait_for_selector_or_continue(page, selector, timeout=5000, message=None):
+#     try:
+#         await page.wait_for_selector(selector, state='visible', timeout=timeout)
+#         return True
+#     except PlaywrightTimeoutError:
+#         if message:
+#             logging.info(message)
+#         return False
+
+# # Función para hacer clic con manejo de interceptores
+# async def click_safely(page, selector, timeout=30000, force=False):
+#     try:
+#         # Primero intentamos el método estándar
+#         try:
+#             element = await page.wait_for_selector(selector, timeout=5000)
+#             if element:
+#                 if force:
+#                     await element.click(force=True)
+#                 else:
+#                     await element.click()
+#                 return True
+#         except Exception as e:
+#             logging.debug(f"Primer intento de clic fallido: {e}")
+            
+#         # Si falla, intentamos con JavaScript
+#         try:
+#             await page.evaluate(f'''() => {{
+#                 const elements = document.querySelectorAll('{selector}');
+#                 if (elements.length > 0) {{
+#                     elements[0].click();
+#                     return true;
+#                 }}
+#                 return false;
+#             }}''')
+#             await human_delay(500, 1000)  # Esperar para que el clic surta efecto
+#             return True
+#         except Exception as e:
+#             logging.debug(f"Clic por JavaScript fallido: {e}")
+            
+#         # Si todo falla, intentamos con opciones más agresivas
+#         try:
+#             await page.click(selector, force=True, timeout=timeout)
+#             return True
+#         except Exception as e:
+#             logging.debug(f"Clic forzado fallido: {e}")
+#             return False
+            
+#     except Exception as e:
+#         logging.error(f"Error al intentar hacer clic en {selector}: {e}")
+#         return False
+
+# # Función para detectar y manejar el captcha
+# async def handle_captcha(page):
+#     logging.info("Verificando presencia de captcha...")
+    
+#     # Verificar si el iframe de Arkose está presente
+#     has_arkose_frame = await wait_for_selector_or_continue(page, "#arkoseFrame", timeout=3000)
+    
+#     if has_arkose_frame:
+#         logging.info("=== CAPTCHA DETECTADO ===")
+#         logging.info("Se encontró el iframe de Arkose Labs.")
+        
+#         # Tomar captura del captcha para depuración
+#         screenshot_dir = Path('screenshots')
+#         screenshot_dir.mkdir(exist_ok=True)
+#         captcha_screenshot = screenshot_dir / f'captcha_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png'
+#         await page.screenshot(path=str(captcha_screenshot))
+#         logging.info(f"Captura del captcha guardada en: {captcha_screenshot}")
+        
+#         # Pedir al usuario que resuelva el captcha manualmente
+#         print("\n=== CAPTCHA DETECTADO ===")
+#         print("Por favor, resuelve el captcha manualmente.")
+#         print("Nota: Es posible que necesites hacer clic en el botón 'Autentificar'/'Authenticate' primero.")
+#         print("El script esperará hasta que indiques que has completado el captcha.")
+#         captcha_resolved = input("Presiona Enter cuando hayas resuelto el captcha y estés listo para continuar...")
+#         logging.info("Usuario indicó que el captcha fue resuelto manualmente.")
+        
+#         # Esperar a que el captcha desaparezca o el campo de contraseña aparezca
+#         for _ in range(20):  # Intentar hasta 20 segundos
+#             # Verificar si el iframe de Arkose ya no está presente
+#             arkose_present = await wait_for_selector_or_continue(page, "#arkoseFrame", timeout=1000)
+#             if not arkose_present:
+#                 logging.info("Iframe de Arkose ya no está presente, captcha completado con éxito.")
+#                 break
+            
+#             # Verificar si el campo de contraseña está visible (señal de éxito)
+#             password_visible = await wait_for_selector_or_continue(page, 'input[name="password"]', timeout=1000)
+#             if password_visible:
+#                 logging.info("Campo de contraseña detectado, captcha completado con éxito.")
+#                 break
+            
+#             await asyncio.sleep(1)
+        
+#         return True
+#     else:
+#         logging.info("No se detectó captcha, continuando con el flujo normal de login.")
+#         return False
+
+# # Función para verificar y guardar la sesión con información del perfil
+# # Función para verificar y guardar la sesión con información del perfil
+# async def save_session(context, page, screenshot_dir, sessions_dir, username):
+#     # Guardar el estado de la sesión
+#     logging.info('Guardando estado de la sesión...')
+#     session_state = await context.storage_state()
+    
+#     # Obtener información del perfil si estamos logueados
+#     profile_info = {}
+#     try:
+#         is_logged_in = await wait_for_selector_or_continue(page, 'a[data-testid="AppTabBar_Home_Link"]', timeout=3000)
+#         if is_logged_in:
+#             # Intentar obtener el nombre de usuario desde la UI
+#             try:
+#                 username_element = await page.query_selector('header button[data-testid="SideNav_AccountSwitcher_Button"] div[dir="ltr"] span span')
+#                 if username_element:
+#                     profile_info['displayName'] = await username_element.inner_text()
+                
+#                 handle_element = await page.query_selector('header button[data-testid="SideNav_AccountSwitcher_Button"] div[dir="ltr"][class*="r-1wvb978"] span')
+#                 if handle_element:
+#                     profile_info['handle'] = await handle_element.inner_text()
+                
+#                 # También guardar el nombre de usuario proporcionado para iniciar sesión
+#                 profile_info['loginUsername'] = username
+#             except Exception as e:
+#                 logging.error(f"Error al obtener información del perfil: {e}")
+#     except Exception as e:
+#         logging.error(f"Error al verificar login: {e}")
+    
+#     # Añadir timestamp y metadatos al estado de la sesión
+#     current_time = datetime.now()
+#     session_data = {
+#         'timestamp': current_time.isoformat(),
+#         'userAgent': await page.evaluate('navigator.userAgent'),
+#         'platform': await page.evaluate('navigator.platform'),
+#         'sessionState': session_state,
+#         'profileInfo': profile_info
+#     }
+    
+#     # Crear directorio de sesiones si no existe
+#     sessions_dir.mkdir(exist_ok=True)
+    
+#     # Usar el nombre de usuario y la fecha en el nombre del archivo
+#     user_identifier = username
+#     date_str = current_time.strftime('%Y%m%d')
+    
+#     # Nombre de archivo con usuario y fecha: x_session_username_YYYYMMDD.json
+#     session_file_path = sessions_dir / f'x_session_{user_identifier}_{date_str}.json'
+    
+#     # Eliminar sesiones antiguas del mismo usuario
+#     try:
+#         for old_file in sessions_dir.glob(f'x_session_{user_identifier}_*.json'):
+#             if old_file != session_file_path:  # No eliminar el archivo que vamos a crear
+#                 old_file.unlink()  # Eliminar archivo antiguo
+#                 logging.info(f'Sesión antigua eliminada: {old_file}')
+#     except Exception as e:
+#         logging.warning(f'Error al eliminar sesiones antiguas: {e}')
+    
+#     # Guardar la nueva sesión
+#     with open(session_file_path, 'w', encoding='utf-8') as f:
+#         json.dump(session_data, f, indent=2)
+#     logging.info(f'Sesión guardada en: {session_file_path}')
+    
+#     # Tomar captura de pantalla del estado actual
+#     timestamp_str = current_time.strftime('%H%M%S')
+#     await page.screenshot(path=str(screenshot_dir / f'session_saved_{user_identifier}_{date_str}_{timestamp_str}.png'))
+    
+#     return session_file_path
+
+# # Función principal
+# async def manual_login():
+#     # Cargar cuentas desde el archivo JSON
+#     accounts = load_accounts()
+    
+#     # Seleccionar una cuenta
+#     username, password = select_account(accounts)
+    
+#     if not username or not password:
+#         logging.info("No se seleccionó ninguna cuenta. Saliendo...")
+#         return
+    
+#     logging.info(f"Iniciando sesión con la cuenta: {username}")
+    
+#     # Crear directorios necesarios
+#     screenshot_dir = Path('screenshots')
+#     screenshot_dir.mkdir(exist_ok=True)
+    
+#     sessions_dir = Path('sessions')
+#     sessions_dir.mkdir(exist_ok=True)
+    
+#     async with async_playwright() as p:
+#         # Lanzar el navegador con UI visible
+#         browser = await p.chromium.launch(
+#             headless=False,
+#             slow_mo=50,
+#             args=[
+#                 '--disable-blink-features=AutomationControlled',
+#                 '--no-sandbox',
+#                 '--disable-web-security',
+#                 '--disable-features=IsolateOrigins,site-per-process'
+#             ]
+#         )
+        
+#         # Crear contexto con configuración para evitar detección
+#         context = await browser.new_context(
+#             viewport={'width': 1280, 'height': 800},
+#             user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
+#             locale='en-US',
+#             timezone_id='America/New_York',
+#             bypass_csp=True,
+#             ignore_https_errors=True
+#         )
+        
+#         # Agregar script para ocultar detección de automatización
+#         await context.add_init_script("""
+#             Object.defineProperty(navigator, 'webdriver', { 
+#                 get: () => undefined 
+#             });
+#         """)
+        
+#         # Crear una nueva página
+#         page = await context.new_page()
+        
+#         try:
+#             # Ir directamente a la página de inicio de sesión para evitar redirecciones extras
+#             logging.info('Navegando a la página de inicio de sesión...')
+#             await page.goto('https://x.com/i/flow/login', wait_until='domcontentloaded')
+#             await human_delay(1000, 2000)
+            
+#             # Tomar captura de pantalla de la página inicial
+#             await page.screenshot(path=str(screenshot_dir / '1_initial_page.png'))
+            
+#             # Verificar si ya estamos en una sesión iniciada
+#             is_logged_in = await wait_for_selector_or_continue(
+#                 page, 
+#                 'a[data-testid="AppTabBar_Home_Link"]', 
+#                 timeout=3000, 
+#                 message="No se detectó sesión iniciada, intentando iniciar sesión."
+#             )
+            
+#             if is_logged_in:
+#                 logging.info("¡Ya hay una sesión iniciada! Guardando estado actual...")
+#                 await save_session(context, page, screenshot_dir, sessions_dir, username)
+#             else:
+#                 # Esperar al campo de nombre de usuario
+#                 logging.info("Esperando al campo de nombre de usuario...")
+#                 username_input_found = False
+#                 username_selectors = [
+#                     'input[name="text"]',
+#                     'input[autocomplete="username"]',
+#                     'input[class*="r-30o5oe"]'
+#                 ]
+                
+#                 for selector in username_selectors:
+#                     if await wait_for_selector_or_continue(page, selector, timeout=5000):
+#                         logging.info(f'Campo de usuario encontrado: {selector}')
+#                         await human_delay()
+#                         await type_human_like(page, selector, username)
+#                         await human_delay(1000, 2000)
+#                         username_input_found = True
+#                         break
+                
+#                 if not username_input_found:
+#                     logging.error("No se encontró el campo de usuario. Por favor, introdúcelo manualmente.")
+#                     manual_action = input("Presiona Enter cuando hayas introducido el nombre de usuario manualmente...")
+                
+#                 # Hacer clic en el botón Next/Siguiente
+#                 logging.info("Haciendo clic en el botón Next/Siguiente...")
+#                 next_button_found = False
+                
+#                 next_selectors = [
+#                     'button:has-text("Next")',
+#                     'button:has-text("Siguiente")',
+#                     'button[type="button"]:has(span:has-text("Next"))',
+#                     'button[type="button"]:has(span:has-text("Siguiente"))',
+#                     'div[role="button"]:has-text("Next")',
+#                     'div[role="button"]:has-text("Siguiente")',
+#                     'button[role="button"]:has(span:has-text("Next"))',
+#                     'button[role="button"]:has(span:has-text("Siguiente"))'
+#                 ]
+                
+#                 for selector in next_selectors:
+#                     if await wait_for_selector_or_continue(page, selector, timeout=3000):
+#                         logging.info(f'Botón Next/Siguiente encontrado: {selector}')
+#                         if await click_safely(page, selector):
+#                             next_button_found = True
+#                             await human_delay(1000, 2000)
+#                             break
+                
+#                 if not next_button_found:
+#                     logging.warning("No se encontró el botón Next/Siguiente. Intentando presionar Enter en el campo de usuario...")
+#                     try:
+#                         for selector in username_selectors:
+#                             if await wait_for_selector_or_continue(page, selector, timeout=1000):
+#                                 await page.press(selector, "Enter")
+#                                 next_button_found = True
+#                                 await human_delay(1000, 2000)
+#                                 break
+#                     except Exception as e:
+#                         logging.error(f"Error al presionar Enter: {e}")
+                
+#                 if not next_button_found:
+#                     logging.error("No se pudo avanzar después de introducir el usuario. Por favor, avanza manualmente.")
+#                     manual_action = input("Presiona Enter cuando hayas avanzado manualmente...")
+                
+#                 # Tomar captura de pantalla después de introducir el usuario
+#                 await page.screenshot(path=str(screenshot_dir / '2_after_username.png'))
+                
+#                 # Manejar captcha si está presente
+#                 await handle_captcha(page)
+                
+#                 # Tomar captura de pantalla después del captcha
+#                 await page.screenshot(path=str(screenshot_dir / '3_after_captcha.png'))
+                
+#                 # Esperar al campo de contraseña
+#                 logging.info("Esperando al campo de contraseña...")
+#                 password_input_found = False
+#                 password_selectors = [
+#                     'input[name="password"]',
+#                     'input[type="password"]',
+#                     'input[autocomplete="current-password"]'
+#                 ]
+                
+#                 for selector in password_selectors:
+#                     if await wait_for_selector_or_continue(page, selector, timeout=8000):
+#                         logging.info(f'Campo de contraseña encontrado: {selector}')
+#                         await human_delay()
+#                         await type_human_like(page, selector, password)
+#                         await human_delay(1000, 2000)
+#                         password_input_found = True
+#                         break
+                
+#                 if not password_input_found:
+#                     logging.error("No se encontró el campo de contraseña. Por favor, introdúcelo manualmente.")
+#                     manual_action = input("Presiona Enter cuando hayas introducido la contraseña manualmente...")
+                
+#                 # Hacer clic en el botón Log in/Iniciar sesión
+#                 logging.info("Haciendo clic en el botón Log in/Iniciar sesión...")
+#                 login_button_found = False
+#                 login_selectors = [
+#                     'button:has-text("Log in")',
+#                     'button:has-text("Iniciar sesión")',
+#                     'div[role="button"]:has-text("Log in")',
+#                     'div[role="button"]:has-text("Iniciar sesión")',
+#                     'button[type="button"]:has(span:has-text("Log in"))',
+#                     'button[type="button"]:has(span:has-text("Iniciar sesión"))'
+#                 ]
+                
+#                 for selector in login_selectors:
+#                     if await wait_for_selector_or_continue(page, selector, timeout=3000):
+#                         logging.info(f'Botón Log in/Iniciar sesión encontrado: {selector}')
+#                         if await click_safely(page, selector):
+#                             login_button_found = True
+#                             await human_delay(2000, 4000)
+#                             break
+                
+#                 if not login_button_found:
+#                     logging.warning("No se encontró el botón Log in/Iniciar sesión. Intentando presionar Enter en el campo de contraseña...")
+#                     try:
+#                         for selector in password_selectors:
+#                             if await wait_for_selector_or_continue(page, selector, timeout=1000):
+#                                 await page.press(selector, "Enter")
+#                                 login_button_found = True
+#                                 await human_delay(2000, 4000)
+#                                 break
+#                     except Exception as e:
+#                         logging.error(f"Error al presionar Enter: {e}")
+                
+#                 if not login_button_found:
+#                     logging.error("No se pudo iniciar sesión. Por favor, inicia sesión manualmente.")
+#                     manual_action = input("Presiona Enter cuando hayas iniciado sesión manualmente...")
+                
+#                 # Tomar captura de pantalla después de iniciar sesión
+#                 await page.screenshot(path=str(screenshot_dir / '4_after_login.png'))
+            
+#             # Mensaje para el usuario
+#             print('\n============= ATENCIÓN =============')
+#             print('El navegador permanecerá abierto para que puedas:')
+#             print('- Resolver cualquier captcha adicional que aparezca')
+#             print('- Navegar manualmente si lo necesitas')
+#             print('- Completar cualquier paso adicional necesario')
+#             print('El script esperará hasta que indiques que quieres guardar la sesión.')
+#             print('=====================================\n')
+            
+#             # Esperar a que el usuario indique que quiere guardar la sesión
+#             while True:
+#                 action = input('\n¿Qué deseas hacer? (guardar/esperar/salir): ')
+                
+#                 if action.lower() == 'guardar':
+#                     # Verificar si el login fue exitoso antes de guardar
+#                     try:
+#                         await page.wait_for_selector('a[data-testid="AppTabBar_Home_Link"]', timeout=5000)
+#                         logging.info('Sesión verificada correctamente. Guardando...')
+#                     except PlaywrightTimeoutError:
+#                         logging.warning('Advertencia: No se puede verificar que el login sea exitoso.')
+#                         verify_anyway = input('¿Deseas guardar la sesión de todos modos? (s/n): ')
+#                         if verify_anyway.lower() != 's':
+#                             logging.info('No se guardará la sesión. Continúa navegando y vuelve a intentarlo.')
+#                             continue
+                    
+#                     # Guardar la sesión
+#                     session_path = await save_session(context, page, screenshot_dir, sessions_dir, username)
+#                     logging.info(f'Sesión guardada exitosamente en: {session_path}')
+                    
+#                     continue_browsing = input('¿Deseas continuar navegando? (s/n): ')
+#                     if continue_browsing.lower() != 's':
+#                         break
+                
+#                 elif action.lower() == 'esperar':
+#                     wait_time = int(input('¿Cuántos segundos deseas esperar? (predeterminado: 60): ') or '60')
+#                     logging.info(f'Esperando {wait_time} segundos...')
+#                     await asyncio.sleep(wait_time)
+                
+#                 elif action.lower() == 'salir':
+#                     save_before_exit = input('¿Deseas guardar la sesión antes de salir? (s/n): ')
+#                     if save_before_exit.lower() == 's':
+#                         await save_session(context, page, screenshot_dir, sessions_dir, username)
+#                     break
+                
+#                 else:
+#                     print('Opción no reconocida. Por favor, elige "guardar", "esperar" o "salir".')
+            
+#             logging.info('Cerrando navegador...')
+            
+#         except Exception as error:
+#             logging.error(f'Ocurrió un error: {error}')
+#             await page.screenshot(path=str(screenshot_dir / 'error_screenshot.png'))
+#             logging.info('Captura de pantalla de error guardada. Por favor, revisa para más información.')
+            
+#             # Intentar guardar la sesión incluso si hay un error
+#             try:
+#                 save_anyway = input('¿Deseas intentar guardar la sesión a pesar del error? (s/n): ')
+#                 if save_anyway.lower() == 's':
+#                     await save_session(context, page, screenshot_dir, sessions_dir, username)
+#             except Exception as save_error:
+#                 logging.error(f'Error al guardar la sesión: {save_error}')
+        
+#         finally:
+#             await browser.close()
+
+# # Ejecutar la función principal
+# if __name__ == "__main__":
+#     asyncio.run(manual_login())
+

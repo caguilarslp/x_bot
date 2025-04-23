@@ -84,7 +84,7 @@ async def main():
             
         elif args.command == 'session':
             # Cargar sesión guardada
-            from app.login.login_sesion_iniciada import open_browser_with_session, list_sessions
+            from app.login.login_sesion import open_browser_with_session, list_sessions
             
             # Si se solicita listar las sesiones
             if args.list:

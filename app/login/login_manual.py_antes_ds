@@ -88,7 +88,7 @@ def select_account(accounts):
             index = int(selection) - 1
             if 0 <= index < len(accounts):
                 selected_account = accounts[index]
-                return selected_account.get("username"), selected_account.get("password"), selected_account.get("recover_user")
+                return selected_account.get("username"), selected_account.get("password")
             else:
                 print(f"Error: Por favor, selecciona un número entre 1 y {len(accounts)}")
         except ValueError:
@@ -261,53 +261,39 @@ async def analyze_page_with_bs4(page, element_type="unknown"):
         # Buscar botones de inicio de sesión
         login_text_variations = ['log in', 'login', 'sign in', 'signin', 'iniciar sesión', 'ingresar', 'acceder']
         
-        # Selector específico para X.com basado en data-testid del HTML
-        specific_data_testid = "LoginForm_Login_Button"  # <--- Selector clave
-        
-        # Buscar botones por atributos prioritarios primero
-        for element in soup.find_all(['button', 'div', 'a']):
-            element_testid = element.get('data-testid', '')
-            element_role = element.get('role', '')
-            element_type_attr = element.get('type', '')
-            element_text = element.get_text(strip=True).lower()
+        # Buscar botones por texto
+        for button in soup.find_all(['button', 'div', 'a']):
+            button_text = button.get_text(strip=True).lower()
+            button_role = button.get('role', '')
+            button_type = button.get('type', '')
+            button_class = ' '.join(button.get('class', []))
+            button_id = button.get('id', '')
+            button_testid = button.get('data-testid', '')
             
-            # Priorizar data-testid exacto
             is_login_button = (
-                element_testid == specific_data_testid  # <--- Coincidencia exacta
-                or any(text in element_text for text in login_text_variations)
-                or (element_role == 'button' and 'login' in element_text)
+                any(text in button_text for text in login_text_variations) or
+                (button_id and any(text in button_id.lower() for text in login_text_variations)) or
+                (button_type == 'submit' and any(text in button_class.lower() for text in login_text_variations)) or
+                (button_testid and 'login' in button_testid.lower())
             )
             
             if is_login_button:
+                # Encontrar el selector para este botón
                 selector = None
-                
-                # 1. Priorizar data-testid exacto
-                if element_testid == specific_data_testid:
-                    selector = f'[data-testid="{specific_data_testid}"]'  # <--- Selector directo
-                
-                # 2. Buscar por ID si existe
-                elif element.get('id'):
-                    selector = f'#{element["id"]}'
-                
-                # 3. Buscar por texto como último recurso
-                else:
-                    cleaned_text = element_text.replace(" ", "").replace("_", "")
-                    for variation in login_text_variations:
-                        if variation.replace(" ", "") in cleaned_text:
-                            selector = f'button:has-text("{variation}")'
-                            break
+                if button_testid:
+                    selector = f"[data-testid='{button_testid}']"
+                elif button_id:
+                    selector = f"#{button_id}"
+                elif button.name == 'button':
+                    selector = f"button:has-text('{button_text}')"
+                elif button_role == 'button':
+                    selector = f"[role='button']:has-text('{button_text}')"
                 
                 if selector:
-                    # Insertar el selector de data-testid al principio de la lista
-                    if specific_data_testid in selector:
-                        results["selectors"].insert(0, selector)  # <--- Prioridad máxima
-                    else:
-                        results["selectors"].append(selector)
-                    
+                    results["selectors"].append(selector)
                     results["found"] = True
-                    logger.debug(f"Login button selector added: {selector}")
-        
-        
+    
+    
     elif element_type == "next_button":
         # Buscar botones de "siguiente" o "next"
         next_text_variations = ['next', 'siguiente', 'continuar', 'continue']
@@ -549,46 +535,13 @@ def get_proxy_config():
         logger.info("No se configuró proxy o está desactivado.")
         return None
 
-
-async def handle_recovery_verification(page, recover_user, screenshot_dir):
-    logger.info("Verificando pantalla de recuperación...")
-    
-    # Detectar campo usando data-testid del HTML proporcionado
-    recovery_selector = 'input[name="text"][data-testid="ocfEnterTextTextInput"]'
-    next_selector = 'button[data-testid="ocfEnterTextNextButton"]'
-    
-    # Esperar hasta 10 segundos por la pantalla
-    recovery_detected = await wait_for_selector_or_continue(
-        page, 
-        recovery_selector, 
-        timeout=10000,
-        message="Buscando pantalla de verificación adicional..."
-    )
-    
-    if recovery_detected and recover_user:
-        logger.info("Pantalla de verificación detectada. Rellenando...")
-        await type_human_like(page, recovery_selector, recover_user)
-        await human_delay(1000, 2000)
-        
-        # Hacer clic en Next
-        if await click_safely(page, next_selector):
-            logger.info("Botón Next presionado en pantalla de verificación.")
-            await page.screenshot(path=str(screenshot_dir / '5_recovery_screen.png'))
-            await human_delay(3000, 5000)  # Esperar redirección
-        else:
-            logger.error("No se pudo hacer clic en el botón Next de recuperación")
-    elif not recover_user:
-        logger.warning("¡Cuenta no tiene recover_user! Manejar manualmente.")
-
-
-
 # Función principal
 async def manual_login():
     # Cargar cuentas desde el archivo JSON
     accounts = load_accounts()
     
     # Seleccionar una cuenta
-    username, password, recover_user = select_account(accounts)
+    username, password = select_account(accounts)
     
     if not username or not password:
         logger.info("No se seleccionó ninguna cuenta. Saliendo...")
@@ -824,9 +777,6 @@ async def manual_login():
                 # Tomar captura de pantalla después de introducir el usuario
                 await page.screenshot(path=str(screenshot_dir / '2_after_username.png'))
                 
-                # Manejar pantalla de verificación adicional (nuevo código)
-                await handle_recovery_verification(page, recover_user, screenshot_dir)
-                
                 # Manejar captcha si está presente
                 await handle_captcha(page)
                 
@@ -912,9 +862,6 @@ async def manual_login():
                 
                 # Tomar captura de pantalla después de iniciar sesión
                 await page.screenshot(path=str(screenshot_dir / '4_after_login.png'))
-            
-                
-            
             
             # Mensaje para el usuario
             print('\n============= ATENCIÓN =============')

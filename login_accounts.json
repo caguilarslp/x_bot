@@ -3,12 +3,14 @@
       {
         "username": "antonioreverteandujar@gmx.com",
         "password": "xJHuc@EhMFNBgJd3",
-        "recover_user": "AndujarReverte"
+        "recover_user": "AndujarReverte",
+        "profile_completed": false 
       },
       {
         "username": "antonela.r87@gmx.com",
         "password": "xJHuc@Ed3Mn",
-        "recover_user": "AntonelaMa88"
+        "recover_user": "AntonelaMa88",
+        "profile_completed": true 
       }
     ]
   }

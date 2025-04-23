@@ -255,20 +255,21 @@ async def main():
                     
                     # Crear instancia de ProfileActions y actualizar perfil
                     logger.info(f"Iniciando actualización de perfil para {recover_user}...")
-                    profile_actions = ProfileActions(page)
+                    # Aquí pasamos recover_user al constructor
+                    profile_actions = ProfileActions(page, recover_user)
                     result = await profile_actions.update_profile(recover_user)
                     
                     # Mostrar resultado
                     if result["status"] == "success":
                         logger.info(f"Perfil de {recover_user} actualizado correctamente")
-                        print(f"\n✅ Perfil de {recover_user} actualizado correctamente.")
+                        print(f"\n Perfil de {recover_user} actualizado correctamente.")
                         if "fields_updated" in result:
                             print("Campos actualizados:")
                             for field in result["fields_updated"]:
                                 print(f"- {field}")
                     else:
                         logger.error(f"Error al actualizar perfil de {recover_user}: {result['message']}")
-                        print(f"\n❌ Error al actualizar perfil de {recover_user}: {result['message']}")
+                        print(f"\n Error al actualizar perfil de {recover_user}: {result['message']}")
                     
                     # Si no es autoclose, esperar a que el usuario cierre manualmente
                     if not args.autoclose:

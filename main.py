@@ -150,6 +150,13 @@ async def main():
                     logger.info("No se seleccionó ninguna cuenta. Saliendo...")
                     return
             
+            
+            account_obj = next((a for a in accounts if a.get("recover_user") == recover_user), None)
+            if account_obj and account_obj.get("profile_completed", False):
+                logger.info(f"Perfil de {recover_user} ya marcado como completado. Saliendo.")
+                print(f"Perfil de {recover_user} ya estaba completado. No se realiza ninguna acción.")
+                return
+                    
             # Abrir navegador con la sesión pero sin esperar a que el usuario lo cierre
             # Esto evitará que la página se cierre antes de que podamos usarla
             browser = None

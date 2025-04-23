@@ -439,39 +439,26 @@ class ProfileActions:
     
     async def update_profile(self, recover_user):
         """
-        Actualizar el perfil de una cuenta utilizando el método más adecuado.
-        
-        Args:
-            recover_user: Nombre de usuario de recuperación (identificador de la carpeta en assets)
-        
-        Returns:
-            dict: Resultado de la acción
+        Update the profile using the step-by-step setup workflow only.
         """
-        # Verificar existencia de la carpeta de cuenta
+        # Verify account folder exists
         account_path = os.path.join("assets", recover_user)
         if not os.path.exists(account_path):
             return {
                 "status": "error",
-                "message": f"La carpeta de cuenta para el usuario {recover_user} no existe"
+                "message": f"Account folder for {recover_user} not found"
             }
-        
-        # Verificar que la página sigue siendo válida
+
+        # Ensure page is open
         try:
             if self.page.is_closed():
-                self.logger.error("La página ha sido cerrada")
-                return {"status": "error", "message": "La página ha sido cerrada"}
+                self.logger.error("The page has been closed")
+                return {"status": "error", "message": "Page closed"}
         except Exception as e:
-            self.logger.error(f"Error al verificar si la página está cerrada: {e}")
-            return {"status": "error", "message": f"Error al verificar la página: {str(e)}"}
-        
-        # Intentar primero el método de modal único
-        self.logger.info(f"Iniciando actualización de perfil para {recover_user} usando modal único")
-        result = await self.edit_profile_single_modal(recover_user)
-        
-        # Si falla, intentar el método paso a paso
-        if result["status"] == "error":
-            self.logger.info("Método de modal único falló, intentando método paso a paso")
-            result = await self.edit_profile_step_by_step(recover_user)
-        
-        return result
+            self.logger.error(f"Error checking page state: {e}")
+            return {"status": "error", "message": str(e)}
+
+        # Always run the step-by-step flow
+        self.logger.info(f"Starting step-by-step profile setup for {recover_user}")
+        return await self.edit_profile_step_by_step(recover_user)
 

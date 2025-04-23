@@ -1,0 +1,7 @@
+De hecho, no debemos hacer clic en profile!!!
+
+tenemos el usuario, ejemplo:         "recover_user": "AndujarReverte"
+
+pues podemos ir directamente a x.com/andujarreverte
+
+y ahí tenemos el perfil, anulamos un paso!!!

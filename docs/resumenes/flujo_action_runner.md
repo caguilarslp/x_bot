@@ -4,7 +4,7 @@ Gran pregunta. Basándome en los archivos existentes y la estrategia de desarrol
 
 1. **Punto de Entrada**: `main.py`
 2. **Proceso de Autenticación**: 
-   - Usar `login_sesion_iniciada.py` para abrir una sesión
+   - Usar `login_sesion.py` para abrir una sesión
    - Este script ya maneja la apertura del navegador con una sesión existente
 
 3. **Posible Estructura de Llamada**:

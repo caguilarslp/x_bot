@@ -24,37 +24,9 @@ logger = logging.getLogger(__name__)
 def load_accounts():
     accounts_file = Path('login_accounts.json')
     if not accounts_file.exists():
-        logger.info("No se encontró el archivo login_accounts.json. Creando uno de ejemplo...")
-        example_accounts = {
-            "accounts": [
-                {
-                    "username": "antonioreverteandujar@gmx.com",
-                    "password": "xJHuc@EhMFNBgJd3",
-                    "description": "Cuenta principal para automatización"
-                },
-                {
-                    "username": "martin.rodriguez87@outlook.com",
-                    "password": "P@ssw0rd2025!Secure",
-                    "description": "Cuenta de testeo para engagement"
-                },
-                {
-                    "username": "social_media_test_42@protonmail.com",
-                    "password": "Kj8$bQ9pLm2!zXcV",
-                    "description": "Cuenta para pruebas de API"
-                },
-                {
-                    "username": "laura.tech.tester@gmail.com",
-                    "password": "T3ch#T3ster2025!",
-                    "description": "Cuenta para analítica"
-                }
-            ]
-        }
-        with open(accounts_file, 'w', encoding='utf-8') as f:
-            json.dump(example_accounts, f, indent=2)
-        
-        logger.info(f"Se ha creado el archivo {accounts_file} con cuentas de ejemplo.")
-        logger.info("Por favor, edita este archivo con tus cuentas reales antes de continuar.")
-        return example_accounts["accounts"]
+        logger.error("No se encontró el archivo login_accounts.json.")
+        logger.error("Por favor, crea este archivo con tus cuentas antes de continuar.")
+        return []
     
     try:
         with open(accounts_file, 'r', encoding='utf-8') as f:
@@ -66,6 +38,7 @@ def load_accounts():
     except Exception as e:
         logger.error(f"Error al cargar el archivo de cuentas: {e}")
         return []
+
 
 # Función para seleccionar una cuenta de la lista
 def select_account(accounts):

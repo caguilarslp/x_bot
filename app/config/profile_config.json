@@ -1,0 +1,39 @@
+{
+    "edit_delay": {
+      "min": 1.5,
+      "max": 4.0
+    },
+    "typing_speed": {
+      "min": 0.05,
+      "max": 0.15
+    },
+    "error_handling": {
+      "max_retries": 3,
+      "retry_delay": 2
+    },
+    "profile_update_options": {
+      "prefer_single_modal": true,
+      "fallback_to_step_by_step": true,
+      "update_all_fields": false
+    },
+    "human_behavior": {
+      "error_probability": 0.02,
+      "correction_delay": {
+        "min": 0.5,
+        "max": 1.2
+      },
+      "pause_probability": 0.05,
+      "pause_duration": {
+        "min": 0.2,
+        "max": 0.8
+      }
+    },
+    "schedule": {
+      "update_interval_days": 30,
+      "random_variation_days": 5,
+      "time_of_day": {
+        "min_hour": 9,
+        "max_hour": 22
+      }
+    }
+  }

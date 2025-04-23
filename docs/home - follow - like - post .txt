@@ -51,3 +51,27 @@ button post antes texto
 button post cuando hay texto en input
 
 <button role="button" class="css-175oi2r r-sdzlij r-1phboty r-rs99b7 r-lrvibr r-1cwvpvk r-2yi16 r-1qi8awa r-3pj75a r-1loqt21 r-o7ynqc r-6416eg r-jc7xae r-1ny4l3l" data-testid="tweetButtonInline" type="button" style="border-color: rgba(0, 0, 0, 0);"><div dir="ltr" class="css-146c3p1 r-bcqeeo r-qvutc0 r-37j5jr r-q4m81j r-a023e6 r-rjixqe r-b88u0q r-1awozwy r-6koalj r-18u37iz r-16y2uox r-1777fci" style="color: rgb(15, 20, 25);"><span class="css-1jxf684 r-dnmrzs r-1udh08x r-1udbk01 r-3s2u2q r-bcqeeo r-1ttztb7 r-qvutc0 r-poiln3 r-a023e6 r-rjixqe"><span class="css-1jxf684 r-bcqeeo r-1ttztb7 r-qvutc0 r-poiln3">Post</span></span></div></button>
+
+
+
+en otro chat estamos trabajando en un script para login en x.com, resolver captcha manualmente y almacenar sesión. adjunto el archivo.
+
+en un segundo script iniciamos sesión en x.com con la sesión previamente almacenada. Debes modificar ese script para que primero lea login_accounts.json, nos pida con que usuario queremos iniciar sesión, busque en  sessions/x_session_username_data.json por ejemplo 
+
+en sessions x_session_antonioreverteandujar@gmx.com_20250422
+en login_accounts.json
+
+{
+    "accounts": [
+      {
+        "username": "antonioreverteandujar@gmx.com",
+        "password": "xJHuc@EhMFNBgJd3",
+        "description": "Cuenta principal para automatización"
+      },
+      {
+	  
+edntonces le indicamos que usuario, busca la sesión e inicia sesión como hasta ahora hace.
+
+
+
+<a href="/AndujarReverte" aria-label="Profile" role="link" class="css-175oi2r r-6koalj r-eqz5dr r-16y2uox r-1habvwh r-13qz1uu r-1mkv55d r-1ny4l3l r-1loqt21" data-testid="AppTabBar_Profile_Link">...

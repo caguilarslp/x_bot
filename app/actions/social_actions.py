@@ -95,8 +95,83 @@ class SocialActions:
                     '//button[@aria-label="Close"]',
                     '//button[contains(@class, "close-modal")]'
                 ]
+            },
+            "modal_dialog": {
+                "primary": '//div[@aria-labelledby="modal-header"]',
+                "fallback": []
+            },
+            "progress_bar": {
+                "primary": '//div[@role="progressbar"]//div[@data-testid="progressBar-bar"]',
+                "fallback": []
             }
         }
+        
+        # # Estructura de selectores más robusta
+        # self.selectors = {
+        #     "follow": {
+        #         "primary": '//button[@data-testid="1589450359-follow"]',
+        #         "fallback": [
+        #             '//button[contains(@aria-label, "Follow")]',
+        #             '//button[contains(text(), "Follow")]',
+        #             '//div[contains(@class, "follow-button")]//button',
+        #             '//a[contains(@href, "/follow")]'
+        #         ]
+        #     },
+        #     "following": {
+        #         "primary": '//button[@data-testid="1626214836-unfollow"]',
+        #         "fallback": [
+        #             '//button[contains(@aria-label, "Following")]',
+        #             '//button[contains(text(), "Following")]',
+        #             '//button[contains(@class, "following-btn")]'
+        #         ]
+        #     },
+        #     "like": {
+        #         "primary": '//button[@data-testid="like"]',
+        #         "fallback": [
+        #             '//button[@aria-label="Like"]',
+        #             '//div[@role="button"][contains(@aria-label, "Like")]',
+        #             '//span[contains(@aria-label, "Like")]//parent::button'
+        #         ]
+        #     },
+        #     "tweet_articles": {
+        #         "primary": '//article[@data-testid="tweet"]',
+        #         "fallback": [
+        #             '//div[@role="article"]',
+        #             '//div[contains(@class, "tweet")]',
+        #             '//div[contains(@class, "tweet-container")]'
+        #         ]
+        #     },
+        #     "reply": {
+        #         "primary": '//button[@data-testid="reply"]',
+        #         "fallback": [
+        #             '//button[@aria-label="Reply"]',
+        #             '//div[@role="button"][contains(@aria-label, "Reply")]'
+        #         ]
+        #     },
+        #     "comment_field": {
+        #         "primary": '//div[@data-testid="tweetTextarea_0"]',
+        #         "fallback": [
+        #             '//div[@role="textbox"][contains(@aria-label, "Tweet text")]',
+        #             '//textarea[@name="tweet"]',
+        #             '//div[contains(@aria-label, "Add a comment")]'
+        #         ]
+        #     },
+        #     "send_comment": {
+        #         "primary": '//button[@data-testid="tweetButton"]',
+        #         "fallback": [
+        #             '//button[contains(text(), "Tweet")]',
+        #             '//button[@aria-label="Tweet"]',
+        #             '//button[contains(@class, "tweet-btn")]'
+        #         ]
+        #     },
+        #     "close_modal": {
+        #         "primary": '//button[@data-testid="app-bar-close"]',
+        #         "fallback": [
+        #             '//button[@aria-label="Close"]',
+        #             '//button[contains(@class, "close-modal")]'
+        #         ]
+        #     }
+        # }
     
     def _load_config(self, config_path):
         """
@@ -643,283 +718,161 @@ class SocialActions:
                 "message": str(e)
             }
    
-    # async def perform_like(self, post_count=1):
-    #     # Verificar riesgo de la acción
-    #     if not self._check_action_risk("like"):
-    #         return {
-    #             "status": "error",
-    #             "action": "like",
-    #             "message": "Acción denegada por riesgo de detección"
-    #         }
-        
-    #     try:
-    #         self.logger.info(f"Buscando {post_count} publicaciones para dar like")
-            
-    #         # Realizar scroll para cargar más publicaciones
-    #         #await self._random_scroll()
-            
-    #         # Buscar todos los botones de like disponibles
-    #         like_buttons = await self._find_element("like")
-            
-    #         if not like_buttons:
-    #             return {
-    #                 "status": "error",
-    #                 "action": "like",
-    #                 "message": "No se encontraron botones de like"
-    #             }
-            
-    #         total_buttons = await like_buttons.count()
-    #         self.logger.info(f"Se encontraron {total_buttons} botones de like")
-            
-    #         # Si no hay suficientes, hacer más scroll
-    #         if total_buttons < post_count:
-    #             self.logger.debug("Haciendo más scroll para encontrar más publicaciones")
-    #             await self._random_scroll(3, 6)
-    #             like_buttons = await self._find_element("like")
-    #             total_buttons = await like_buttons.count() if like_buttons else 0
-            
-    #         # Inicializar contadores
-    #         likes_given = 0
-    #         already_liked = 0
-            
-    #         # Limitar el número de likes al mínimo entre el conteo solicitado y disponible
-    #         target_count = min(post_count, total_buttons)
-            
-    #         # Elegir botones aleatorios si hay más de los necesarios
-    #         if total_buttons > target_count:
-    #             indices = random.sample(range(total_buttons), target_count)
-    #         else:
-    #             indices = list(range(target_count))
-            
-    #         for index in indices:
-    #             self.logger.info(f"Liking post {likes_given+1}/{post_count} (button index {index})")
-    #             button = like_buttons.nth(index)
-                
-    #             # Verificar si ya le dimos like 
-    #             try:
-    #                 is_liked = await button.get_attribute("aria-pressed") == "true"
-    #                 if is_liked:
-    #                     already_liked += 1
-    #                     continue
-    #             except Exception:
-    #                 # Si no podemos verificar, intentar de todos modos
-    #                 pass
-                
-    #             # Simular comportamiento humano antes de hacer clic
-    #             await self._human_delay(1, 2.5)
-                
-    #             # Dar like
-    #             await button.click()
-    #             self.logger.info(f"Like #{likes_given+1} successful")
-                
-    #             # Esperar un poco después del like
-    #             await self._human_delay(0.5, 1.5)
-                
-    #             # Verificar si el like fue exitoso
-    #             try:
-    #                 if await button.get_attribute("aria-pressed") == "true":
-    #                     likes_given += 1
-    #                     self.logger.debug(f"Like exitoso #{likes_given}")
-                        
-    #                     # Registrar la acción
-    #                     result = {
-    #                         "status": "success",
-    #                         "action": "like",
-    #                         "post_index": likes_given,
-    #                         "timestamp": datetime.now().isoformat()
-    #                     }
-    #                     self._log_action("like", result)
-    #                     self.actions_performed += 1
-    #                 else:
-    #                     self.logger.debug("Like posiblemente fallido")
-    #             except Exception as e:
-    #                 self.logger.debug(f"Error al verificar resultado del like: {e}")
-                
-    #             # Si ya hemos dado suficientes likes, parar
-    #             if likes_given >= post_count:
-    #                 break
-            
-    #         # Resultado final
-    #         return {
-    #             "status": "success",
-    #             "action": "like",
-    #             "statistics": {
-    #                 "requested": post_count,
-    #                 "available": total_buttons,
-    #                 "liked": likes_given,
-    #                 "already_liked": already_liked
-    #             },
-    #             "timestamp": datetime.now().isoformat()
-    #         }
-            
-    #     except Exception as e:
-    #         self.logger.error(f"Error al dar likes: {e}")
-    #         return {
-    #             "status": "error",
-    #             "action": "like",
-    #             "message": str(e)
-    #         }   
-  
-  
-    async def comment_on_post(self, index=0, comment_text=""):
-        # Verificar riesgo de la acción
+
+    async def comment_on_post(self, index: int = 0, comment_text: str = "", profile_url: str = None) -> dict:
+        """
+        Añade un comentario navegando a la página dedicada del tweet y vuelve al perfil.
+
+        Args:
+            index (int): Índice cero-based del tweet en la página de perfil.
+            comment_text (str): Texto del comentario.
+            profile_url (str): URL completa del perfil (e.g. https://x.com/realOscarRamos1).
+
+        Returns:
+            dict: Resultado de la acción.
+        """
+        if not profile_url:
+            return {"status": "error", "action": "comment", "message": "profile_url es requerido para comentar en hilo dedicado."}
         if not self._check_action_risk("comment"):
-            return {
-                "status": "error",
-                "action": "comment",
-                "message": "Acción denegada por riesgo de detección"
-            }
-        
-        # Verificar que el comentario no esté vacío
+            return {"status": "error", "action": "comment", "message": "Acción denegada por riesgo de detección."}
         if not comment_text:
-            return {
-                "status": "error",
-                "action": "comment",
-                "message": "El texto del comentario no puede estar vacío"
-            }
-        
+            return {"status": "error", "action": "comment", "message": "El texto del comentario no puede estar vacío."}
+
         try:
-            self.logger.info(f"Intentando comentar en la publicación #{index}")
-            
-            # Buscar publicaciones
             tweets = await self._find_element("tweet_articles")
-            
             if not tweets:
-                return {
-                    "status": "error",
-                    "action": "comment",
-                    "message": "No se encontraron publicaciones"
-                }
-            
-            total_tweets = await tweets.count()
-            
-            if total_tweets == 0 or total_tweets <= index:
-                # Hacer scroll para cargar más
-                await self._random_scroll(3, 5)
-                tweets = await self._find_element("tweet_articles")
-                total_tweets = await tweets.count() if tweets else 0
-            
-            if total_tweets == 0 or total_tweets <= index:
-                return {
-                    "status": "error",
-                    "action": "comment",
-                    "message": f"No se encontró la publicación #{index}"
-                }
-            
-            # Obtener la publicación objetivo
-            target_tweet = tweets.nth(index)
-            
-            # Buscar el botón de reply dentro de esta publicación
-            reply_buttons = await self._find_element("reply")
-            
-            if not reply_buttons:
-                return {
-                    "status": "error",
-                    "action": "comment",
-                    "message": "Botón de respuesta no encontrado"
-                }
-            
-            # Hacer clic en el botón de respuesta
-            self.logger.debug("Haciendo clic en el botón de respuesta")
+                return {"status": "error", "action": "comment", "message": "No se encontraron tweets en perfil."}
+            total = await tweets.count()
+            if index >= total:
+                return {"status": "error", "action": "comment", "message": f"Índice {index} fuera de rango ({total})."}
+
+            target = tweets.nth(index)
+            link_elem = target.locator('xpath=.//a[contains(@href, "/status/")]').first()
+            href = await link_elem.get_attribute("href")
+            tweet_url = href if href.startswith("http") else f"https://x.com{href}"
+
+            self.logger.info(f"Navegando a hilo: {tweet_url}")
+            await self.page.goto(tweet_url, wait_until="domcontentloaded")
+            await self._human_delay(2, 5)
+
+            field_loc = await self._find_element("comment_field", context=self.page)
+            if not field_loc:
+                return {"status": "error", "action": "comment", "message": "Campo de comentario no encontrado en hilo."}
+            editor = field_loc.first()
+            await self._human_typing(editor, comment_text)
+
             await self._human_delay(1, 3)
-            await reply_buttons.first().click()
-            
-            # Esperar a que aparezca el campo de comentario
+            send_loc = await self._find_element("send_comment", context=self.page)
+            if not send_loc:
+                return {"status": "error", "action": "comment", "message": "Botón Reply no encontrado en hilo."}
+            await send_loc.first().click()
+
+            progress = self.page.locator('xpath=//div[@role="progressbar"]//div[@data-testid="progressBar-bar"]')
+            await progress.wait_for(state="hidden", timeout=15000)
+
+            self.logger.info(f"Regresando al perfil: {profile_url}")
+            await self.page.goto(profile_url, wait_until="domcontentloaded")
             await self._human_delay(2, 4)
-            
-            # Buscar el campo de texto del comentario
-            comment_fields = await self._find_element("comment_field")
-            
-            if not comment_fields:
-                return {
-                    "status": "error",
-                    "action": "comment",
-                    "message": "Campo de comentario no encontrado"
-                }
-            
-            # Escribir el comentario con simulación de escritura humana
-            comment_field = comment_fields.first()
-            self.logger.debug(f"Escribiendo comentario: {comment_text}")
-            await self._human_typing(comment_field, comment_text)
-            
-            # Pequeña pausa antes de enviar
-            await self._human_delay(1, 3)
-            
-            # Buscar el botón de enviar comentario
-            send_buttons = await self._find_element("send_comment")
-            
-            if not send_buttons:
-                # Intentar cerrar el modal si no podemos comentar
-                try:
-                    close_buttons = await self._find_element("close_modal")
-                    if close_buttons:
-                        await close_buttons.first().click()
-                except Exception:
-                    pass
-                
-                return {
-                    "status": "error",
-                    "action": "comment",
-                    "message": "Botón de enviar comentario no encontrado"
-                }
-            
-            # Comprobar si el botón está deshabilitado
-            send_button = send_buttons.first()
-            is_disabled = await send_button.get_attribute("disabled") == "true"
-            
-            if is_disabled:
-                # Intentar cerrar el modal
-                try:
-                    close_buttons = await self._find_element("close_modal")
-                    if close_buttons:
-                        await close_buttons.first().click()
-                except Exception:
-                    pass
-                
-                return {
-                    "status": "error",
-                    "action": "comment",
-                    "message": "Botón de enviar comentario deshabilitado"
-                }
-            
-            # Enviar el comentario
-            await send_button.click()
-            
-            # Esperar a que se procese el comentario
-            await self._human_delay(3, 6)
-            
-            # Registrar la acción
+
             result = {
-                "status": "success",
-                "action": "comment",
-                "post_index": index,
-                "comment_text": comment_text,
+                "status": "success", "action": "comment", "post_index": index,
+                "comment_text": comment_text, "tweet_url": tweet_url,
                 "timestamp": datetime.now().isoformat()
             }
-            
             self._log_action("comment", result)
             self.actions_performed += 1
-            
-            self.logger.info("Comentario enviado exitosamente")
             return result
-            
-        except Exception as e:
-            self.logger.error(f"Error al comentar: {e}")
-            
-            # Intentar cerrar el modal si hubo error
-            try:
-                close_buttons = await self._find_element("close_modal")
-                if close_buttons:
-                    await close_buttons.first().click()
-            except Exception:
-                pass
-            
-            return {
-                "status": "error",
-                "action": "comment",
-                "message": str(e)
-            }  
+
+        except Exception as exc:
+            self.logger.error(f"Error en comment_on_post: {exc}")
+            return {"status": "error", "action": "comment", "message": str(exc)}  
   
+    # async def comment_on_post(self, index: int = 0, comment_text: str = "") -> dict:
+    #     """
+    #     Add a comment to the specified post index with human-like interaction and
+    #     progress-based modal auto-close.
+
+    #     Selectors employed:
+    #     - tweet_articles: //article[@data-testid="tweet"]
+    #     - reply: //button[@data-testid="reply"]
+    #     - modal_dialog: //div[@aria-labelledby="modal-header"]
+    #     - comment_field: //div[@data-testid="tweetTextarea_0"]
+    #     - send_comment: //button[@data-testid="tweetButton"]
+    #     - progress_bar: //div[@role="progressbar"]//div[@data-testid="progressBar-bar"]
+    #     """
+    #     # Validate action risk and input
+    #     if not self._check_action_risk("comment"):
+    #         return {"status": "error", "action": "comment", "message": "Action blocked by risk threshold."}
+    #     if not comment_text:
+    #         return {"status": "error", "action": "comment", "message": "Comment text must not be empty."}
+
+    #     try:
+    #         self.logger.info(f"Attempting to comment on post #{index}")
+
+    #         # Locate loaded tweet articles
+    #         tweets = await self._find_element("tweet_articles")
+    #         if not tweets:
+    #             return {"status": "error", "action": "comment", "message": "No posts found."}
+
+    #         total = await tweets.count()
+    #         if index >= total:
+    #             await self._random_scroll(3, 5)
+    #             tweets = await self._find_element("tweet_articles")
+    #             total = await tweets.count()
+    #             if index >= total:
+    #                 return {"status": "error", "action": "comment", "message": f"Post index {index} out of range ({total})."}
+
+    #         target = tweets.nth(index)
+
+    #         # Click the reply button within the target article
+    #         reply_loc = await self._find_element("reply", context=target)
+    #         if not reply_loc:
+    #             return {"status": "error", "action": "comment", "message": "Reply button not found."}
+    #         await self._human_delay(1, 3)
+    #         await reply_loc.first().click()
+
+    #         # Wait for comment modal using modal-header
+    #         modal = self.page.locator('xpath=//div[@aria-labelledby="modal-header"]')
+    #         await modal.wait_for(state="visible", timeout=5000)
+
+    #         # Enter text into the comment field within modal
+    #         field_loc = await self._find_element("comment_field", context=modal)
+    #         if not field_loc:
+    #             return {"status": "error", "action": "comment", "message": "Comment input field not found."}
+    #         editor = field_loc.first()
+    #         self.logger.debug(f"Typing comment: {comment_text}")
+    #         await self._human_typing(editor, comment_text)
+
+    #         await self._human_delay(1, 3)
+
+    #         # Click the send comment button within modal
+    #         send_loc = await self._find_element("send_comment", context=modal)
+    #         if not send_loc:
+    #             return {"status": "error", "action": "comment", "message": "Send button not found."}
+    #         send_btn = send_loc.first()
+    #         await send_btn.click()
+    #         self.logger.debug("Clicked send button, waiting for progress to complete.")
+
+    #         # Wait for hidden progress bar indicating modal auto-close
+    #         progress = self.page.locator('xpath=//div[@role="progressbar"]//div[@data-testid="progressBar-bar"]')
+    #         await progress.wait_for(state="hidden", timeout=15000)
+
+    #         # Record success
+    #         result = {
+    #             "status": "success",
+    #             "action": "comment",
+    #             "post_index": index,
+    #             "comment_text": comment_text,
+    #             "timestamp": datetime.now().isoformat()
+    #         }
+    #         self._log_action("comment", result)
+    #         self.actions_performed += 1
+    #         self.logger.info("Comment posted successfully.")
+    #         return result
+
+    #     except Exception as exc:
+    #         self.logger.error(f"Error in comment_on_post: {exc}")
+    #         return {"status": "error", "action": "comment", "message": str(exc)}
   
     
     async def batch_interact(self, profiles, action_template=None):

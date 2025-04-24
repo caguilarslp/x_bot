@@ -4,13 +4,19 @@
         "username": "antonioreverteandujar@gmx.com",
         "password": "xJHuc@EhMFNBgJd3",
         "recover_user": "AndujarReverte",
-        "profile_completed": false 
+        "profile_completed": true 
       },
       {
         "username": "antonela.r87@gmx.com",
         "password": "xJHuc@Ed3Mn",
         "recover_user": "AntonelaMa88",
         "profile_completed": true 
+      },
+      {
+        "username": "pedro.parrado.lopez@gmx.com",
+        "password": "AKfFFermWjRM54",
+        "recover_user": "PedroL30818",
+        "profile_completed": false 
       }
     ]
   }

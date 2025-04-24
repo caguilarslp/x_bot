@@ -28,51 +28,21 @@ class ProfileActions:
         self.logger = logging.getLogger(__name__)
         self.config = self._load_config(config_path)
         
-        # Selectores XPath para edición de perfil
+        # Selectores XPath para configuración de perfil
         self.selectors = {
-            # Navigate to the profile
-            "profile_link": "//a[@data-testid='AppTabBar_Profile_Link']",
-            
-            # Button to open the single-modal editor
-            "edit_profile_button": [
-                "//span[contains(text(), 'Edit profile')]",   # lowercase p
-                "//span[contains(text(), 'Edit Profile')]"    # uppercase P
-            ],
-            
-            # Fields inside the single-modal editor
-            "name_input": "//input[@name='displayName']",
-            "bio_textarea": "//textarea[@name='description']",
-            "location_input": "//input[@name='location']",
-            "profile_picture_input": "//input[@type='file' and contains(@accept, 'image/')]",
-            "save_button": "//button[@data-testid='Profile_Save_Button']",
-            
-            # Buttons to open the modal (single or step-by-step)
-            "setup_profile_button": [
-                "//span[contains(text(), 'Set up profile')]",   # lowercase p
-                "//span[contains(text(), 'Set up Profile')]",   # uppercase P
-                "//span[contains(text(), 'SET UP PROFILE')]",   # all caps
-                "//span[contains(text(), 'Edit profile')]",     # fallback to single edit
-                "//span[contains(text(), 'Edit Profile')]"      # fallback uppercase P
-            ],
-            
-            # Step-by-step: upload avatar
-            "photo_upload_input": "//input[@data-testid='fileInput' and @type='file']",
-            "photo_skip_button": "//button[@data-testid='ocfSelectAvatarSkipForNowButton']",
-            "photo_next_button": "//button[@data-testid='ocfSelectAvatarNextButton']",
-            
-            # Step-by-step: bio entry
-            "bio_step_textarea": "//textarea[@data-testid='ocfEnterTextTextInput' and @name='text']",
-            "bio_skip_button": "//button[@data-testid='ocfEnterTextSkipForNowButton']",
-            "bio_next_button": "//button[@data-testid='ocfEnterTextNextButton']",
-            
-            # Step-by-step: location entry
-            "location_step_input": "//input[@data-testid='ocfEnterTextTextInput' and @name='text']",
-            "location_skip_button": "//button[@data-testid='ocfEnterTextSkipForNowButton']",
-            "location_next_button": "//button[@data-testid='ocfEnterTextNextButton']",
-            
-            # Final call-to-action save
-            "final_save_button": "//button[@data-testid='OCF_CallToAction_Button']",
-            "close_button": "//button[@data-testid='app-bar-close']"
+            "setup_start_button": "//span[text()='Set up profile']",
+            "profile_picture_upload": "//input[@type='file' and @data-testid='fileInput']",
+            "profile_picture_apply": "//button[@data-testid='applyButton']",
+            "profile_picture_next": "//button[@data-testid='ocfSelectAvatarNextButton']",
+            "profile_picture_skip": "//button[@data-testid='ocfSelectAvatarSkipForNowButton']",
+            "header_picture_skip": "//button[@data-testid='ocfSelectBannerSkipForNowButton']",
+            "bio_textarea": "//textarea[@data-testid='ocfEnterTextTextInput']",
+            "bio_next": "//button[@data-testid='ocfEnterTextNextButton']",
+            "bio_skip": "//button[@data-testid='ocfEnterTextSkipForNowButton']",
+            "location_input": "//input[@data-testid='ocfEnterTextTextInput']",
+            "location_next": "//button[@data-testid='ocfEnterTextNextButton']",
+            "location_skip": "//button[@data-testid='ocfEnterTextSkipForNowButton']",
+            "final_save": "//button[@data-testid='OCF_CallToAction_Button']"
         }
     
     def _load_config(self, config_path):
@@ -187,20 +157,7 @@ class ProfileActions:
         
         for attempt in range(max_retries):
             try:
-                if isinstance(selector, list):
-                    # Intentar múltiples selectores alternativos
-                    for sel in selector:
-                        try:
-                            element = await self.page.wait_for_selector(sel, timeout=timeout, state="visible" if visible else "attached")
-                            if element:
-                                return element
-                        except:
-                            continue
-                    # Si llegamos aquí, ningún selector funcionó
-                    raise Exception(f"Ninguno de los selectores alternativos encontrados: {selector}")
-                else:
-                    # Selector único
-                    return await self.page.wait_for_selector(selector, timeout=timeout, state="visible" if visible else "attached")
+                return await self.page.wait_for_selector(selector, timeout=timeout, state="visible" if visible else "attached")
             except Exception as e:
                 if attempt < max_retries - 1:
                     self.logger.warning(f"Intento {attempt+1} fallido para selector {selector}: {e}. Reintentando...")
@@ -235,118 +192,10 @@ class ProfileActions:
         except Exception as e:
             self.logger.error(f"Error al cargar datos del perfil: {e}")
             return {}
-    
 
-
-    async def navigate_to_profile(self):
+    async def setup_profile(self, recover_user):
         """
-        Navigate directly to the user's profile URL.
-        """
-        try:
-            # Build profile URL from the handle
-            profile_url = f"https://x.com/{self.recover_user.lower()}"
-            self.logger.info(f"Navigating directly to profile: {profile_url}")
-            await self.page.goto(profile_url, wait_until="domcontentloaded")
-            await asyncio.sleep(2)  # wait for profile to load
-            return True
-
-        except Exception as e:
-            self.logger.error(f"Error navigating to profile {self.recover_user}: {e}")
-            return False
-
-
-    async def edit_profile_single_modal(self, recover_user):
-        """
-        Edit profile using the single-modal workflow.
-        Tries both 'Edit profile' and 'Set up Profile'.
-        """
-        # 1. Sanity check: page must be open
-        try:
-            if self.page.is_closed():
-                self.logger.error("The page has been closed")
-                return {"status": "error", "message": "Page closed"}
-        except Exception as e:
-            self.logger.error(f"Error checking page state: {e}")
-            return {"status": "error", "message": str(e)}
-
-        # 2. Navigate to the user's profile (now direct URL)
-        self.logger.info("Navigating to profile for single-modal edit")
-        if not await self.navigate_to_profile():
-            return {"status": "error", "message": "Failed to navigate to profile"}
-
-        # 3. Open the edit modal (covers both button variants)
-        self.logger.info("Attempting to open profile edit modal")
-        edit_button = await self._wait_for_selector_with_retry(
-            self.selectors["setup_profile_button"],  # ["//span[contains(text(),'Set up Profile')]", "//span[contains(text(),'Edit profile')]"]
-            timeout=10000
-        )
-        if not edit_button:
-            return {"status": "error", "message": "Edit profile button not found"}
-
-        await edit_button.click()
-        await self._human_delay()
-
-        # 4. Load profile data from assets/<recover_user>/profile.json
-        profile_data = await self._load_profile_data(recover_user)
-        if not profile_data:
-            return {"status": "error", "message": "Profile data not found"}
-
-        fields_updated = {}
-
-        # 5. Update fields as before...
-        if "name" in profile_data:
-            self.logger.info("Updating display name")
-            name_input = await self._wait_for_selector_with_retry(self.selectors["name_input"])
-            if name_input:
-                await self._human_typing(name_input, profile_data["name"])
-                fields_updated["name"] = True
-
-        if "bio" in profile_data:
-            self.logger.info("Updating bio")
-            bio_input = await self._wait_for_selector_with_retry(self.selectors["bio_textarea"])
-            if bio_input:
-                await self._human_typing(bio_input, profile_data["bio"])
-                fields_updated["bio"] = True
-
-        if "location" in profile_data:
-            self.logger.info("Updating location")
-            loc_input = await self._wait_for_selector_with_retry(self.selectors["location_input"])
-            if loc_input:
-                await self._human_typing(loc_input, profile_data["location"])
-                fields_updated["location"] = True
-
-        if "profile_picture" in profile_data:
-            self.logger.info("Updating profile picture")
-            img_path = os.path.join("assets", recover_user, profile_data["profile_picture"])
-            if os.path.exists(img_path):
-                pic_input = await self._wait_for_selector_with_retry(self.selectors["profile_picture_input"])
-                if pic_input:
-                    await pic_input.set_input_files(img_path)
-                    await self._human_delay(2.0, 5.0)
-                    fields_updated["profile_picture"] = True
-            else:
-                self.logger.warning(f"Profile picture not found at {img_path}")
-
-        # 6. Save changes
-        self.logger.info("Saving profile changes")
-        save_btn = await self._wait_for_selector_with_retry(self.selectors["save_button"])
-        if not save_btn:
-            return {"status": "error", "message": "Save button not found"}
-
-        await self._human_delay()
-        await save_btn.click()
-        await self._human_delay(3.0, 6.0)
-
-        return {
-            "status": "success",
-            "message": "Profile updated",
-            "fields_updated": fields_updated
-        }
-    
-    
-    async def edit_profile_step_by_step(self, recover_user):
-        """
-        Edit profile using the step-by-step setup workflow.
+        Configure profile using the step-by-step setup workflow for new accounts.
         """
         # 1. Ensure page is still open
         try:
@@ -357,89 +206,103 @@ class ProfileActions:
             self.logger.error(f"Error checking page state: {e}")
             return {"status": "error", "message": str(e)}
 
-        # 2. Navigate directly to the profile
-        self.logger.info("Navigating to profile for step-by-step edit")
-        if not await self.navigate_to_profile():
-            return {"status": "error", "message": "Failed to navigate to profile"}
-
-        # 3. Open the setup/edit modal (handles both variants)
-        self.logger.info("Opening setup/edit profile modal")
-        setup_button = await self._wait_for_selector_with_retry(
-            self.selectors["setup_profile_button"],
-            timeout=10000
-        )
-        if not setup_button:
-            return {"status": "error", "message": "Setup/Edit profile button not found"}
-
-        await setup_button.click()
-        await self._human_delay()
-
-        # 4. Load profile configuration
+        # 2. Load profile configuration
         profile_data = await self._load_profile_data(recover_user)
         if not profile_data:
             return {"status": "error", "message": "Profile data not found"}
 
-        # 5. Step 1: Upload or skip profile photo
+        # 3. Start profile setup
+        setup_button = await self._wait_for_selector_with_retry(self.selectors["setup_start_button"])
+        if not setup_button:
+            return {"status": "error", "message": "Setup profile button not found"}
+        
+        await setup_button.click()
+        await self._human_delay()
+
+        # 4. Profile Picture Step
         if "profile_picture" in profile_data:
-            photo_header = await self._wait_for_selector_with_retry(
-                "//h1[contains(text(), 'Pick a profile picture')]", timeout=5000
-            )
-            if photo_header:
-                img_path = os.path.join("assets", recover_user, profile_data["profile_picture"])
-                if os.path.exists(img_path):
-                    upload_input = await self._wait_for_selector_with_retry(self.selectors["photo_upload_input"])
-                    if upload_input:
-                        self.logger.info("Uploading profile picture")
-                        await upload_input.set_input_files(img_path)
-                        await self._human_delay(2.0, 5.0)
-                next_btn = await self._wait_for_selector_with_retry(self.selectors["photo_next_button"])
-                if next_btn:
-                    await next_btn.click()
+            img_path = os.path.join("assets", recover_user, profile_data["profile_picture"])
+            if os.path.exists(img_path):
+                upload_input = await self._wait_for_selector_with_retry(self.selectors["profile_picture_upload"])
+                if upload_input:
+                    self.logger.info("Uploading profile picture")
+                    await upload_input.set_input_files(img_path)
+                    await self._human_delay(2.0, 5.0)
+                    
+                    # Apply and go to next step
+                    apply_btn = await self._wait_for_selector_with_retry(self.selectors["profile_picture_apply"])
+                    if apply_btn:
+                        await apply_btn.click()
+                        await self._human_delay()
+            
+            # Next button (whether picture was uploaded or skipped)
+            next_btn = await self._wait_for_selector_with_retry(self.selectors["profile_picture_next"])
+            if next_btn:
+                await next_btn.click()
+                await self._human_delay()
+            else:
+                # Fallback skip if no next button found
+                skip_btn = await self._wait_for_selector_with_retry(self.selectors["profile_picture_skip"])
+                if skip_btn:
+                    await skip_btn.click()
                     await self._human_delay()
 
-        # 6. Step 2: Enter bio or skip
+        # 5. Header Picture Step (optional)
+        skip_header_btn = await self._wait_for_selector_with_retry(self.selectors["header_picture_skip"])
+        if skip_header_btn:
+            await skip_header_btn.click()
+            await self._human_delay()
+
+        # 6. Bio Step
         if "bio" in profile_data:
-            bio_header = await self._wait_for_selector_with_retry(
-                "//h1[contains(text(), 'Describe yourself')]", timeout=5000
-            )
-            if bio_header:
-                bio_input = await self._wait_for_selector_with_retry(self.selectors["bio_step_textarea"])
-                if bio_input:
-                    self.logger.info("Entering bio")
-                    await self._human_typing(bio_input, profile_data["bio"])
-                next_btn = await self._wait_for_selector_with_retry(self.selectors["bio_next_button"])
-                if next_btn:
-                    await next_btn.click()
+            bio_input = await self._wait_for_selector_with_retry(self.selectors["bio_textarea"])
+            if bio_input:
+                self.logger.info("Entering bio")
+                await self._human_typing(bio_input, profile_data["bio"])
+            
+            next_btn = await self._wait_for_selector_with_retry(self.selectors["bio_next"])
+            if next_btn:
+                await next_btn.click()
+                await self._human_delay()
+            else:
+                skip_btn = await self._wait_for_selector_with_retry(self.selectors["bio_skip"])
+                if skip_btn:
+                    await skip_btn.click()
                     await self._human_delay()
 
-        # 7. Step 3: Enter location or skip
+        # 7. Location Step
         if "location" in profile_data:
-            loc_header = await self._wait_for_selector_with_retry(
-                "//h1[contains(text(), 'Where do you live?')]", timeout=5000
-            )
-            if loc_header:
-                loc_input = await self._wait_for_selector_with_retry(self.selectors["location_step_input"])
-                if loc_input:
-                    self.logger.info("Entering location")
-                    await self._human_typing(loc_input, profile_data["location"])
-                next_btn = await self._wait_for_selector_with_retry(self.selectors["location_next_button"])
-                if next_btn:
-                    await next_btn.click()
+            loc_input = await self._wait_for_selector_with_retry(self.selectors["location_input"])
+            if loc_input:
+                self.logger.info("Entering location")
+                await self._human_typing(loc_input, profile_data["location"])
+            
+            next_btn = await self._wait_for_selector_with_retry(self.selectors["location_next"])
+            if next_btn:
+                await next_btn.click()
+                await self._human_delay()
+            else:
+                skip_btn = await self._wait_for_selector_with_retry(self.selectors["location_skip"])
+                if skip_btn:
+                    await skip_btn.click()
                     await self._human_delay()
 
-        # 8. Finalize by clicking the call-to-action button
-        final_btn = await self._wait_for_selector_with_retry(self.selectors["final_save_button"], timeout=5000)
+        # 8. Final Save/Confirmation
+        final_btn = await self._wait_for_selector_with_retry(self.selectors["final_save"])
         if final_btn:
-            self.logger.info("Saving final profile setup")
+            self.logger.info("Completing profile setup")
             await final_btn.click()
             await self._human_delay(3.0, 6.0)
 
-        return {"status": "success", "message": "Profile configured step-by-step"}
-
+        return {
+            "status": "success", 
+            "message": "Profile setup completed",
+            "fields_updated": list(profile_data.keys())
+        }
     
     async def update_profile(self, recover_user):
         """
-        Update the profile using the step-by-step setup workflow only.
+        Update the profile using the step-by-step setup workflow.
         """
         # Verify account folder exists
         account_path = os.path.join("assets", recover_user)
@@ -458,7 +321,7 @@ class ProfileActions:
             self.logger.error(f"Error checking page state: {e}")
             return {"status": "error", "message": str(e)}
 
-        # Always run the step-by-step flow
-        self.logger.info(f"Starting step-by-step profile setup for {recover_user}")
-        return await self.edit_profile_step_by_step(recover_user)
+        # Always run the step-by-step setup
+        self.logger.info(f"Starting profile setup for {recover_user}")
+        return await self.setup_profile(recover_user)
 

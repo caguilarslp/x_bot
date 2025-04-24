@@ -6,6 +6,11 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+
+#logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger("playwright").setLevel(logging.INFO)  # opcional, para reducir ruido
+
+
 class SocialActions:
     """
     Clase para manejar acciones sociales en X.com como seguir usuarios,
@@ -34,144 +39,68 @@ class SocialActions:
         # Estructura de selectores más robusta
         self.selectors = {
             "follow": {
-                "primary": '//button[@data-testid="1589450359-follow"]',
+                "primary": 'css=button[aria-label^="Follow @"]',
                 "fallback": [
-                    '//button[contains(@aria-label, "Follow")]',
-                    '//button[contains(text(), "Follow")]',
-                    '//div[contains(@class, "follow-button")]//button',
-                    '//a[contains(@href, "/follow")]'
+                    'css=button[data-testid$="-follow"]',
+                    'css=button:has-text("Follow")',
                 ]
             },
             "following": {
-                "primary": '//button[@data-testid="1626214836-unfollow"]',
+                "primary": 'css=button[aria-label^="Following @"]',
                 "fallback": [
-                    '//button[contains(@aria-label, "Following")]',
-                    '//button[contains(text(), "Following")]',
-                    '//button[contains(@class, "following-btn")]'
+                    'css=button[data-testid$="-unfollow"]',
+                    'css=button:has-text("Following")',
                 ]
             },
             "like": {
-                "primary": '//button[@data-testid="like"]',
+                # First look for unliked posts, then detect already-liked state
+                "primary": 'css=button[aria-label$=". Like"]',
                 "fallback": [
-                    '//button[@aria-label="Like"]',
-                    '//div[@role="button"][contains(@aria-label, "Like")]',
-                    '//span[contains(@aria-label, "Like")]//parent::button'
+                    'css=button[aria-label$=". Liked"]',
                 ]
             },
             "tweet_articles": {
-                "primary": '//article[@data-testid="tweet"]',
+                "primary": 'css=article[data-testid="tweet"]',
                 "fallback": [
-                    '//div[@role="article"]',
-                    '//div[contains(@class, "tweet")]',
-                    '//div[contains(@class, "tweet-container")]'
+                    'css=div[role="article"]',
                 ]
             },
             "reply": {
-                "primary": '//button[@data-testid="reply"]',
+                "primary": 'css=button[data-testid="reply"]',
                 "fallback": [
-                    '//button[@aria-label="Reply"]',
-                    '//div[@role="button"][contains(@aria-label, "Reply")]'
+                    'css=button[aria-label^="Reply"]',
+                    'css=button:has-text("Reply")'
                 ]
             },
             "comment_field": {
-                "primary": '//div[@data-testid="tweetTextarea_0"]',
+                "primary": 'css=[aria-label="Post text"]',
                 "fallback": [
-                    '//div[@role="textbox"][contains(@aria-label, "Tweet text")]',
-                    '//textarea[@name="tweet"]',
-                    '//div[contains(@aria-label, "Add a comment")]'
+                    'css=div[role="textbox"]'
                 ]
             },
             "send_comment": {
-                "primary": '//button[@data-testid="tweetButton"]',
+                "primary": 'css=button[data-testid="tweetButtonInline"]',
                 "fallback": [
-                    '//button[contains(text(), "Tweet")]',
-                    '//button[@aria-label="Tweet"]',
-                    '//button[contains(@class, "tweet-btn")]'
+                    'css=button:has-text("Reply to")'
                 ]
             },
             "close_modal": {
-                "primary": '//button[@data-testid="app-bar-close"]',
+                "primary": 'css=button[data-testid="app-bar-close"]',
                 "fallback": [
-                    '//button[@aria-label="Close"]',
-                    '//button[contains(@class, "close-modal")]'
+                    'css=button[aria-label="Close"]',
+                    'css=button:has-text("Close")'
                 ]
             },
             "modal_dialog": {
-                "primary": '//div[@aria-labelledby="modal-header"]',
+                "primary": 'css=div[aria-labelledby="modal-header"]',
                 "fallback": []
             },
             "progress_bar": {
-                "primary": '//div[@role="progressbar"]//div[@data-testid="progressBar-bar"]',
+                "primary": 'css=div[role="progressbar"] div[data-testid="progressBar-bar"]',
                 "fallback": []
             }
         }
-        
-        # # Estructura de selectores más robusta
-        # self.selectors = {
-        #     "follow": {
-        #         "primary": '//button[@data-testid="1589450359-follow"]',
-        #         "fallback": [
-        #             '//button[contains(@aria-label, "Follow")]',
-        #             '//button[contains(text(), "Follow")]',
-        #             '//div[contains(@class, "follow-button")]//button',
-        #             '//a[contains(@href, "/follow")]'
-        #         ]
-        #     },
-        #     "following": {
-        #         "primary": '//button[@data-testid="1626214836-unfollow"]',
-        #         "fallback": [
-        #             '//button[contains(@aria-label, "Following")]',
-        #             '//button[contains(text(), "Following")]',
-        #             '//button[contains(@class, "following-btn")]'
-        #         ]
-        #     },
-        #     "like": {
-        #         "primary": '//button[@data-testid="like"]',
-        #         "fallback": [
-        #             '//button[@aria-label="Like"]',
-        #             '//div[@role="button"][contains(@aria-label, "Like")]',
-        #             '//span[contains(@aria-label, "Like")]//parent::button'
-        #         ]
-        #     },
-        #     "tweet_articles": {
-        #         "primary": '//article[@data-testid="tweet"]',
-        #         "fallback": [
-        #             '//div[@role="article"]',
-        #             '//div[contains(@class, "tweet")]',
-        #             '//div[contains(@class, "tweet-container")]'
-        #         ]
-        #     },
-        #     "reply": {
-        #         "primary": '//button[@data-testid="reply"]',
-        #         "fallback": [
-        #             '//button[@aria-label="Reply"]',
-        #             '//div[@role="button"][contains(@aria-label, "Reply")]'
-        #         ]
-        #     },
-        #     "comment_field": {
-        #         "primary": '//div[@data-testid="tweetTextarea_0"]',
-        #         "fallback": [
-        #             '//div[@role="textbox"][contains(@aria-label, "Tweet text")]',
-        #             '//textarea[@name="tweet"]',
-        #             '//div[contains(@aria-label, "Add a comment")]'
-        #         ]
-        #     },
-        #     "send_comment": {
-        #         "primary": '//button[@data-testid="tweetButton"]',
-        #         "fallback": [
-        #             '//button[contains(text(), "Tweet")]',
-        #             '//button[@aria-label="Tweet"]',
-        #             '//button[contains(@class, "tweet-btn")]'
-        #         ]
-        #     },
-        #     "close_modal": {
-        #         "primary": '//button[@data-testid="app-bar-close"]',
-        #         "fallback": [
-        #             '//button[@aria-label="Close"]',
-        #             '//button[contains(@class, "close-modal")]'
-        #         ]
-        #     }
-        # }
+
     
     def _load_config(self, config_path):
         """
@@ -255,32 +184,53 @@ class SocialActions:
         self.logger.debug(f"Esperando {delay:.2f} segundos...")
         await asyncio.sleep(delay)
     
-    async def _human_typing(self, element, text):
+    async def _human_typing(self, element, text: str):
         """
-        Simular escritura humana con variaciones en la velocidad.
-        
-        Args:
-            element: Elemento DOM donde escribir
-            text: Texto a escribir
+        Simulate human typing into an input or contenteditable element,
+        character by character, using element.type() with randomized delays.
         """
-        # Limpiar el campo primero si es necesario
+        # Clear any existing content
         await element.fill("")
+        # Short pause before typing
         await self._human_delay(0.5, 1.5)
-        
-        # Velocidad base de escritura (caracteres por segundo)
-        base_speed = random.uniform(0.05, 0.15)
-        
-        # Escribir caracter por caracter con variaciones
+
+        # Type each character with a small random delay
         for char in text:
-            # Aplicar delay variable por caracter
-            char_delay = base_speed * random.uniform(0.8, 1.2)
-            await asyncio.sleep(char_delay)
-            await element.press(char)
+            # delay is in milliseconds for element.type()
+            delay_ms = int(random.uniform(0.05, 0.15) * 1000)
+            await element.type(char, delay=delay_ms)
+
+            # Occasional thinking pause (5% chance)
+            if random.random() < 0.05:
+                await asyncio.sleep(random.uniform(0.3, 1.5))
+    
+    
+    # async def _human_typing(self, element, text):
+    #     """
+    #     Simular escritura humana con variaciones en la velocidad.
+        
+    #     Args:
+    #         element: Elemento DOM donde escribir
+    #         text: Texto a escribir
+    #     """
+    #     # Limpiar el campo primero si es necesario
+    #     await element.fill("")
+    #     await self._human_delay(0.5, 1.5)
+        
+    #     # Velocidad base de escritura (caracteres por segundo)
+    #     base_speed = random.uniform(0.05, 0.15)
+        
+    #     # Escribir caracter por caracter con variaciones
+    #     for char in text:
+    #         # Aplicar delay variable por caracter
+    #         char_delay = base_speed * random.uniform(0.8, 1.2)
+    #         await asyncio.sleep(char_delay)
+    #         await element.press(char)
             
-            # Pausas ocasionales para simular pensamiento
-            if random.random() < 0.05:  # 5% de probabilidad
-                thinking_pause = random.uniform(0.3, 1.5)
-                await asyncio.sleep(thinking_pause)
+    #         # Pausas ocasionales para simular pensamiento
+    #         if random.random() < 0.05:  # 5% de probabilidad
+    #             thinking_pause = random.uniform(0.3, 1.5)
+    #             await asyncio.sleep(thinking_pause)
     
     def _check_action_risk(self, action_type):
         """
@@ -372,57 +322,42 @@ class SocialActions:
             
     async def _find_element(self, selector_key, context=None, parent_context=None):
         """
-        Buscar un elemento con estrategia de selectores múltiples.
+        Search for an element using CSS selectors first (with fallbacks), logging each attempt.
         
         Args:
-            selector_key: Clave del selector en self.selectors
-            context: Contexto de búsqueda (página o elemento padre)
-            parent_context: Contexto padre opcional
-        
-        Returns:
-            Localizador del elemento o None
-        """
-        # Definir el contexto de búsqueda
-        search_context = context if context is not None else (parent_context if parent_context is not None else self.page)
-        
-        # Obtener la configuración de selectores para esta clave
-        selector_config = self.selectors.get(selector_key, None)
-        if not selector_config:
-            self.logger.error(f"No se encontró configuración de selector para: {selector_key}")
-            return None
-        
-        # Intentar selector principal
-        try:
-            primary_selector = selector_config.get('primary')
-            if primary_selector:
-                try:
-                    # Intentar con selector primario en XPath
-                    elements = search_context.locator(f'xpath={primary_selector}')
-                    if await elements.count() > 0:
-                        self.logger.debug(f"Elemento encontrado con selector principal para {selector_key}")
-                        return elements
-                except Exception as e:
-                    self.logger.warning(f"Error con selector principal de {selector_key}: {e}")
-        except Exception:
-            pass
-        
-        # Intentar selectores de respaldo
-        try:
-            fallback_selectors = selector_config.get('fallback', [])
-            for fallback_selector in fallback_selectors:
-                elements = search_context.locator(f'xpath={fallback_selector}')
-                if await elements.count() > 0:
-                    return elements
+            selector_key: Key in self.selectors for the desired element.
+            context: Playwright context (page or element) to search within.
+            parent_context: Optional parent context if context is not provided.
 
-        except Exception as e:
-                    self.logger.debug(f"Selector de respaldo fallido: {fallback_selector} - {e}")
-        except Exception:
-            pass
-        
-        # Si no se encuentra ningún selector
-        self.logger.error(f"No se encontró elemento para {selector_key}")
+        Returns:
+            Locator for the found elements, or None if not found.
+        """
+        search_context = context or parent_context or self.page
+        cfg = self.selectors.get(selector_key)
+        if not cfg:
+            self.logger.error(f"No selector config for: {selector_key}")
+            return None
+
+        timeout = self.config.get('timeouts', {}).get('element_visible_ms', 5000)
+        # combine primary + fallbacks
+        candidates = [cfg['primary']] + cfg.get('fallback', [])
+
+        for sel in candidates:
+            try:
+                # sel should start with 'css=' or 'xpath='
+                locator = search_context.locator(sel)
+                count = await locator.count()
+                self.logger.debug(f"Trying {selector_key} ⇒ {sel} (found {count})")
+                if count > 0:
+                    self.logger.debug(f"✅ Selector final para {selector_key}: {sel}")
+                    await locator.first.wait_for(state="visible", timeout=timeout)
+                    return locator
+            except Exception as e:
+                self.logger.debug(f"Selector failed for {selector_key} ⇒ {sel}: {e}")
+
+        self.logger.error(f"Element not found for {selector_key}")
         return None
-    
+
     
     
     async def _capture_page_html(self, filename=None):
@@ -465,137 +400,45 @@ class SocialActions:
     
     async def navigate_to_profile(self, username):
         """
-        Navegar al perfil de un usuario específico.
-        
-        Args:
-            username: Nombre de usuario a visitar (sin @)
-        
-        Returns:
-            bool: Si la navegación fue exitosa
+        Navigate to a user's profile page if not already there.
+        Uses DOMContentLoaded for fast loads, with a fallback to 'load'
+        on failure, and skips navigation when the URL already matches.
         """
-        try:
-            self.logger.info(f"Navegando al perfil de @{username}")
-            
-            # Asegurar que el username no incluye @ al principio
-            username = username.lstrip('@')
-            
-            # Navegar a la URL del perfil
-            profile_url = f"https://x.com/{username}"
-            await self.page.goto(profile_url, wait_until="domcontentloaded")
-            
-            # Esperar a que cargue el perfil (puede variar según la velocidad de conexión)
-            await self._human_delay(3, 6)
-            
-            # Verificar que estamos en la página correcta
-            current_url = self.page.url
-            if username.lower() in current_url.lower():
-                self.logger.info(f"Navegación exitosa a @{username}")
-                return True
-            else:
-                self.logger.warning(f"Posible redirección: {current_url}")
-                return False
-            
-        except Exception as e:
-            self.logger.error(f"Error al navegar al perfil @{username}: {e}")
-            return False
-    
-    
-   
-    async def follow_user(self, username):
-        # Verificar riesgo de la acción
-        if not self._check_action_risk("follow"):
-            return {
-                "status": "error",
-                "action": "follow",
-                "username": username,
-                "message": "Acción denegada por riesgo de detección"
-            }
-        
-        try:
-            # Navegar al perfil si no estamos ya en él
-            current_url = self.page.url
-            if f"/{username.lower()}" not in current_url.lower():
-                success = await self.navigate_to_profile(username)
-                if not success:
-                    return {
-                        "status": "error",
-                        "action": "follow",
-                        "username": username,
-                        "message": "No se pudo navegar al perfil"
-                    }
-            
-            # Esperar a que la página cargue completamente
-            await self._human_delay(2, 4)
-            
-            # Buscar botones de seguir y siguiendo
-            follow_button = await self._find_element("follow")
-            following_button = await self._find_element("following")
-            
-            # Verificar si ya estamos siguiendo al usuario
-            if following_button and await following_button.count() > 0:
-                self.logger.info(f"Ya estamos siguiendo a @{username}")
-                return {
-                    "status": "info",
-                    "action": "follow",
-                    "username": username,
-                    "message": "Ya siguiendo al usuario"
-                }
-            
-            # Si no lo seguimos, buscar el botón de follow
-            if follow_button and await follow_button.count() > 0:
-                self.logger.info(f"Haciendo clic en el botón Follow para @{username}")
-                
-                # Simulación de comportamiento humano antes de hacer clic
-                await self._human_delay(1, 3)
-                
-                # Hacer clic en el botón
-                await follow_button.first().click()
-                
-                # Esperar después del clic para ver el resultado
-                await self._human_delay(2, 4)
-                
-                # Verificar si el botón cambió a "Following"
-                following_check = await self._find_element("following")
-                
-                if following_check and await following_check.count() > 0:
-                    result = {
-                        "status": "success",
-                        "action": "follow",
-                        "username": username,
-                        "timestamp": datetime.now().isoformat()
-                    }
-                    
-                    # Registrar la acción exitosa
-                    self._log_action("follow", result)
-                    self.actions_performed += 1
-                    
-                    self.logger.info(f"Follow exitoso para @{username}")
-                    return result
-                else:
-                    return {
-                        "status": "error",
-                        "action": "follow",
-                        "username": username,
-                        "message": "No se pudo confirmar el follow"
-                    }
-            else:
-                return {
-                    "status": "error",
-                    "action": "follow",
-                    "username": username,
-                    "message": "Botón Follow no encontrado"
-                }
-            
-        except Exception as e:
-            self.logger.error(f"Error al seguir a @{username}: {e}")
-            return {
-                "status": "error",
-                "action": "follow",
-                "username": username,
-                "message": str(e)
-            }   
-   
+        username = username.lstrip('@')
+        profile_url = f"https://x.com/{username}"
+        self.logger.info(f"Navigating to profile @{username}")
 
+        # Skip navigation if we're already on the right page
+        if profile_url in self.page.url:
+            self.logger.info(f"Already on @{username} profile, skipping navigation")
+            return True
+
+        # Get our timeout (ms)
+        nav_timeout = self.config.get('timeouts', {}).get('navigation_timeout_ms', 10000)
+
+        # Try the lighter DOMContentLoaded event first
+        try:
+            await self.page.goto(profile_url, wait_until="domcontentloaded", timeout=nav_timeout)
+        except Exception as first_err:
+            self.logger.warning(
+                f"DOMContentLoaded navigation to @{username} failed ({first_err}), retrying with load"
+            )
+            try:
+                # fallback to full 'load' event with a longer timeout
+                await self.page.goto(profile_url, wait_until="load", timeout=nav_timeout * 2)
+            except Exception as second_err:
+                self.logger.error(f"Load navigation to @{username} also failed: {second_err}")
+                return False
+
+        # Short human-like pause
+        await self._human_delay(3, 6)
+
+        if username.lower() in self.page.url.lower():
+            self.logger.info(f"Successfully on @{username} profile")
+            return True
+        else:
+            self.logger.warning(f"Unexpected redirect to {self.page.url}")
+            return False    
      
     async def _random_scroll(self, min_scrolls=2, max_scrolls=5, scroll_range_min=300, scroll_range_max=800):
         """
@@ -718,163 +561,264 @@ class SocialActions:
                 "message": str(e)
             }
    
-
-    async def comment_on_post(self, index: int = 0, comment_text: str = "", profile_url: str = None) -> dict:
+    async def follow_user(self, username: str) -> dict:
         """
-        Añade un comentario navegando a la página dedicada del tweet y vuelve al perfil.
+        Follow a user from their profile page.
 
-        Args:
-            index (int): Índice cero-based del tweet en la página de perfil.
-            comment_text (str): Texto del comentario.
-            profile_url (str): URL completa del perfil (e.g. https://x.com/realOscarRamos1).
+        1. Navigate if not already on their profile.
+        2. Check if already following.
+        3. Click the follow button and verify change.
 
         Returns:
-            dict: Resultado de la acción.
+            Result dict with status and message.
         """
-        if not profile_url:
-            return {"status": "error", "action": "comment", "message": "profile_url es requerido para comentar en hilo dedicado."}
-        if not self._check_action_risk("comment"):
-            return {"status": "error", "action": "comment", "message": "Acción denegada por riesgo de detección."}
-        if not comment_text:
-            return {"status": "error", "action": "comment", "message": "El texto del comentario no puede estar vacío."}
+        if not self._check_action_risk("follow"):
+            return {"status": "error", "action": "follow", "username": username,
+                    "message": "Action blocked due to detection risk."}
 
-        try:
-            tweets = await self._find_element("tweet_articles")
-            if not tweets:
-                return {"status": "error", "action": "comment", "message": "No se encontraron tweets en perfil."}
-            total = await tweets.count()
-            if index >= total:
-                return {"status": "error", "action": "comment", "message": f"Índice {index} fuera de rango ({total})."}
+        # 1) Ensure profile page
+        if f"/{username.lower()}" not in self.page.url.lower():
+            if not await self.navigate_to_profile(username):
+                return {"status": "error", "action": "follow", "username": username,
+                        "message": "Failed to navigate to profile."}
 
-            target = tweets.nth(index)
-            link_elem = target.locator('xpath=.//a[contains(@href, "/status/")]').first()
-            href = await link_elem.get_attribute("href")
-            tweet_url = href if href.startswith("http") else f"https://x.com{href}"
+        # Give extra time for slow proxies
+        await self.page.wait_for_timeout(self.config.get('timeouts', {}).get('element_visible_ms', 5000))
 
-            self.logger.info(f"Navegando a hilo: {tweet_url}")
-            await self.page.goto(tweet_url, wait_until="domcontentloaded")
-            await self._human_delay(2, 5)
+        # 2) Check existing following state
+        following_locator = await self._find_element("following")
+        if following_locator and await following_locator.count() > 0:
+            return {"status": "info", "action": "follow", "username": username,
+                    "message": "Already following this user."}
 
-            field_loc = await self._find_element("comment_field", context=self.page)
-            if not field_loc:
-                return {"status": "error", "action": "comment", "message": "Campo de comentario no encontrado en hilo."}
-            editor = field_loc.first()
-            await self._human_typing(editor, comment_text)
+        # 3) Locate and click follow
+        follow_locator = await self._find_element("follow")
+        if not follow_locator or await follow_locator.count() == 0:
+            return {"status": "error", "action": "follow", "username": username,
+                    "message": "Follow button not found."}
 
-            await self._human_delay(1, 3)
-            send_loc = await self._find_element("send_comment", context=self.page)
-            if not send_loc:
-                return {"status": "error", "action": "comment", "message": "Botón Reply no encontrado en hilo."}
-            await send_loc.first().click()
+        # Ensure the button is visible before clicking
+        visibility_timeout = self.config.get('timeouts', {}).get('element_visible_ms', 5000)
+        await follow_locator.first.wait_for(state="visible", timeout=visibility_timeout)
 
-            progress = self.page.locator('xpath=//div[@role="progressbar"]//div[@data-testid="progressBar-bar"]')
-            await progress.wait_for(state="hidden", timeout=15000)
+        await self._human_delay(1, 3)
+        await follow_locator.first.click()
 
-            self.logger.info(f"Regresando al perfil: {profile_url}")
-            await self.page.goto(profile_url, wait_until="domcontentloaded")
-            await self._human_delay(2, 4)
+        # Wait for UI update
+        await self.page.wait_for_timeout(self.config.get('timeouts', {}).get('element_visible_ms', 5000))
 
-            result = {
-                "status": "success", "action": "comment", "post_index": index,
-                "comment_text": comment_text, "tweet_url": tweet_url,
-                "timestamp": datetime.now().isoformat()
-            }
-            self._log_action("comment", result)
+        # 4) Verify follow succeeded
+        confirm = await self._find_element("following")
+        if confirm and await confirm.count() > 0:
+            result = {"status": "success", "action": "follow", "username": username,
+                      "timestamp": datetime.now().isoformat()}
+            self._log_action("follow", result)
             self.actions_performed += 1
             return result
 
-        except Exception as exc:
-            self.logger.error(f"Error en comment_on_post: {exc}")
-            return {"status": "error", "action": "comment", "message": str(exc)}  
-  
-    # async def comment_on_post(self, index: int = 0, comment_text: str = "") -> dict:
-    #     """
-    #     Add a comment to the specified post index with human-like interaction and
-    #     progress-based modal auto-close.
+        return {"status": "error", "action": "follow", "username": username,
+                "message": "Follow confirmation not detected."}
 
-    #     Selectors employed:
-    #     - tweet_articles: //article[@data-testid="tweet"]
-    #     - reply: //button[@data-testid="reply"]
-    #     - modal_dialog: //div[@aria-labelledby="modal-header"]
-    #     - comment_field: //div[@data-testid="tweetTextarea_0"]
-    #     - send_comment: //button[@data-testid="tweetButton"]
-    #     - progress_bar: //div[@role="progressbar"]//div[@data-testid="progressBar-bar"]
+
+    # async def comment_on_post(self,
+    #                           index: int = 0,
+    #                           comment_text: str = "",
+    #                           profile_url: str = None
+    #                           ) -> dict:
     #     """
-    #     # Validate action risk and input
+    #     Comment on a specific post from a user's profile.
+
+    #     Steps:
+    #     1. Locate articles on profile.
+    #     2. Navigate to the selected post.
+    #     3. Write and send the comment, waiting for the progress bar to hide.
+    #     4. Return to profile page.
+
+    #     Returns:
+    #         Result dict with status and message.
+    #     """
+    #     profile_url = profile_url or self.page.url
+
     #     if not self._check_action_risk("comment"):
-    #         return {"status": "error", "action": "comment", "message": "Action blocked by risk threshold."}
+    #         return {"status": "error", "action": "comment", "message": "High detection risk."}
     #     if not comment_text:
-    #         return {"status": "error", "action": "comment", "message": "Comment text must not be empty."}
+    #         return {"status": "error", "action": "comment", "message": "Empty comment."}
 
-    #     try:
-    #         self.logger.info(f"Attempting to comment on post #{index}")
+    #     # 1) Load list of tweets
+    #     tweets = await self._find_element("tweet_articles")
+    #     if not tweets or await tweets.count() == 0:
+    #         return {"status": "error", "action": "comment", "message": "No posts found."}
 
-    #         # Locate loaded tweet articles
-    #         tweets = await self._find_element("tweet_articles")
-    #         if not tweets:
-    #             return {"status": "error", "action": "comment", "message": "No posts found."}
+    #     # Ensure the first tweet is visible
+    #     visibility_timeout = self.config.get('timeouts', {}).get('element_visible_ms', 5000)
+    #     await tweets.first.wait_for(state="visible", timeout=visibility_timeout)
 
-    #         total = await tweets.count()
-    #         if index >= total:
-    #             await self._random_scroll(3, 5)
-    #             tweets = await self._find_element("tweet_articles")
-    #             total = await tweets.count()
-    #             if index >= total:
-    #                 return {"status": "error", "action": "comment", "message": f"Post index {index} out of range ({total})."}
+    #     total = await tweets.count()
+    #     if index >= total:
+    #         return {"status": "error", "action": "comment",
+    #                 "message": f"Index ({index}) out of range ({total})."}
 
-    #         target = tweets.nth(index)
+    #     # 2) Obtain post URL
+    #     target = tweets.nth(index)
+    #     #link = target.locator('xpath=.//a[contains(@href,"/status/")]').first
+    #     link = target.locator('css=a[href*="/status/"]').first
+    #     href = await link.get_attribute("href")
+    #     tweet_url = href if href.startswith("http") else f"https://x.com{href}"
 
-    #         # Click the reply button within the target article
-    #         reply_loc = await self._find_element("reply", context=target)
-    #         if not reply_loc:
-    #             return {"status": "error", "action": "comment", "message": "Reply button not found."}
-    #         await self._human_delay(1, 3)
-    #         await reply_loc.first().click()
+    #     # 3) Navigate and wait for full load
+    #     nav_timeout = self.config.get('timeouts', {}).get('navigation_timeout_ms', 10000)
+    #     await self.page.goto(tweet_url, wait_until="networkidle", timeout=nav_timeout)
+    #     await self.page.wait_for_timeout(self.config.get('timeouts', {}).get('element_visible_ms', 5000))
 
-    #         # Wait for comment modal using modal-header
-    #         modal = self.page.locator('xpath=//div[@aria-labelledby="modal-header"]')
-    #         await modal.wait_for(state="visible", timeout=5000)
+    #     # 4) Write the comment
+    #     field = await self._find_element("comment_field", context=self.page)
+    #     if not field or await field.count() == 0:
+    #         return {"status": "error", "action": "comment", "message": "Comment field not found."}
+    #     await field.first.wait_for(state="visible", timeout=visibility_timeout)
+    #     await self._human_typing(field.first, comment_text)
 
-    #         # Enter text into the comment field within modal
-    #         field_loc = await self._find_element("comment_field", context=modal)
-    #         if not field_loc:
-    #             return {"status": "error", "action": "comment", "message": "Comment input field not found."}
-    #         editor = field_loc.first()
-    #         self.logger.debug(f"Typing comment: {comment_text}")
-    #         await self._human_typing(editor, comment_text)
+    #     # 5) Send and wait for progress
+    #     send = await self._find_element("send_comment", context=self.page)
+    #     if not send or await send.count() == 0:
+    #         return {"status": "error", "action": "comment", "message": "Send button not found."}
+    #     await send.first.wait_for(state="visible", timeout=visibility_timeout)
+    #     await self._human_delay(1, 3)
+    #     await send.first.click()
 
-    #         await self._human_delay(1, 3)
+    #     # bar = self.page.locator(
+    #     #     'xpath=//div[@role="progressbar"]//div[@data-testid="progressBar-bar"]'
+    #     # )
+    #     bar = self.page.locator('css=div[role="progressbar"] div[data-testid="progressBar-bar"]')
+    #     await bar.wait_for(state="hidden", timeout=15000)
 
-    #         # Click the send comment button within modal
-    #         send_loc = await self._find_element("send_comment", context=modal)
-    #         if not send_loc:
-    #             return {"status": "error", "action": "comment", "message": "Send button not found."}
-    #         send_btn = send_loc.first()
-    #         await send_btn.click()
-    #         self.logger.debug("Clicked send button, waiting for progress to complete.")
+    #     # 6) Return to profile
+    #     await self.page.goto(profile_url, wait_until="domcontentloaded")
+    #     await self.page.wait_for_timeout(self.config.get('timeouts', {}).get('element_visible_ms', 5000))
 
-    #         # Wait for hidden progress bar indicating modal auto-close
-    #         progress = self.page.locator('xpath=//div[@role="progressbar"]//div[@data-testid="progressBar-bar"]')
-    #         await progress.wait_for(state="hidden", timeout=15000)
+    #     # 7) Log and return
+    #     result = {
+    #         "status": "success",
+    #         "action": "comment",
+    #         "post_index": index,
+    #         "comment_text": comment_text,
+    #         "tweet_url": tweet_url,
+    #         "timestamp": datetime.now().isoformat()
+    #     }
+    #     self._log_action("comment", result)
+    #     self.actions_performed += 1
+    #     return result
 
-    #         # Record success
-    #         result = {
-    #             "status": "success",
-    #             "action": "comment",
-    #             "post_index": index,
-    #             "comment_text": comment_text,
-    #             "timestamp": datetime.now().isoformat()
-    #         }
-    #         self._log_action("comment", result)
-    #         self.actions_performed += 1
-    #         self.logger.info("Comment posted successfully.")
-    #         return result
+    async def comment_on_post(self,
+                              index: int = 0,
+                              comment_text: str = "",
+                              profile_url: str = None
+                              ) -> dict:
+        """
+        Comment on a specific post from a user's profile.
+        1. Ensure we have the target tweet URL.
+        2. Skip navigation if already there.
+        3. Use DOMContentLoaded + fallback 'load' instead of networkidle.
+        4. Type and send the comment.
+        5. Wait for progress bar to hide and pause.
+        6. Return to profile.
+        """
+        profile_url = profile_url or self.page.url
 
-    #     except Exception as exc:
-    #         self.logger.error(f"Error in comment_on_post: {exc}")
-    #         return {"status": "error", "action": "comment", "message": str(exc)}
-  
-    
+        # Risk and input checks
+        if not self._check_action_risk("comment"):
+            return {"status": "error", "action": "comment", "message": "High detection risk."}
+        if not comment_text:
+            return {"status": "error", "action": "comment", "message": "Empty comment."}
+
+        # 1) Gather tweets on profile
+        tweets = await self._find_element("tweet_articles")
+        if not tweets or await tweets.count() == 0:
+            return {"status": "error", "action": "comment", "message": "No posts found."}
+        await tweets.first.wait_for(
+            state="visible",
+            timeout=self.config.get('timeouts', {}).get('element_visible_ms', 5000)
+        )
+
+        total = await tweets.count()
+        if index >= total:
+            return {
+                "status": "error",
+                "action": "comment",
+                "message": f"Index ({index}) out of range ({total})."
+            }
+
+        # 2) Build the tweet URL from the selected post
+        target = tweets.nth(index)
+        link = target.locator('css=a[href*="/status/"]').first
+        href = await link.get_attribute("href")
+        tweet_url = href if href.startswith("http") else f"https://x.com{href}"
+
+        # 3) Navigate to tweet if not already there
+        nav_timeout = self.config.get('timeouts', {}).get('navigation_timeout_ms', 10000)
+        if tweet_url not in self.page.url:
+            try:
+                await self.page.goto(
+                    tweet_url,
+                    wait_until="domcontentloaded",
+                    timeout=nav_timeout
+                )
+            except Exception as first_err:
+                self.logger.warning(
+                    f"DOMContentLoaded navigation to tweet failed ({first_err}), retrying with load"
+                )
+                await self.page.goto(
+                    tweet_url,
+                    wait_until="load",
+                    timeout=nav_timeout * 2
+                )
+        # Brief pause for stability
+        await self.page.wait_for_timeout(
+            self.config.get('timeouts', {}).get('element_visible_ms', 5000)
+        )
+
+        # 4) Type and send the comment
+        field = await self._find_element("comment_field")
+        if not field or await field.count() == 0:
+            return {"status": "error", "action": "comment", "message": "Comment field not found."}
+        await field.first.wait_for(state="visible", timeout=nav_timeout)
+        await self._human_typing(field.first, comment_text)
+
+        send = await self._find_element("send_comment")
+        if not send or await send.count() == 0:
+            return {"status": "error", "action": "comment", "message": "Send button not found."}
+        await send.first.wait_for(state="visible", timeout=nav_timeout)
+        await self._human_delay(1, 3)
+        await send.first.click()
+
+        # 5) Wait for the progress bar to disappear
+        bar = self.page.locator(
+            'css=div[role="progressbar"] div[data-testid="progressBar-bar"]'
+        )
+        await bar.wait_for(state="hidden", timeout=15000)
+
+        # 5.1) Pause so the posted comment has time to render
+        await self._human_delay(2, 5)
+
+        # 6) Return to profile
+        await self.page.goto(profile_url, wait_until="domcontentloaded")
+        await self.page.wait_for_timeout(
+            self.config.get('timeouts', {}).get('element_visible_ms', 5000)
+        )
+
+        # 7) Log and report
+        result = {
+            "status": "success",
+            "action": "comment",
+            "post_index": index,
+            "comment_text": comment_text,
+            "tweet_url": tweet_url,
+            "timestamp": datetime.now().isoformat()
+        }
+        self._log_action("comment", result)
+        self.actions_performed += 1
+        return result
+
+ 
     async def batch_interact(self, profiles, action_template=None):
         """
         Realizar interacciones con múltiples perfiles, siguiendo un patrón.

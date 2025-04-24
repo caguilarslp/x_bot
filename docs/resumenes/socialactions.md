@@ -1,6 +1,7 @@
 python main.py social like --account antonioreverteandujar@gmx.com AlexisRivPon --count 3
 
 
+
 # Seguir a un usuario
 python main.py social follow AlexisRivPon --account tu_usuario
 

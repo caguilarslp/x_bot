@@ -1,6 +1,6 @@
 {
   "timestamp": "2025-04-23T10:15:34.496114",
-  "timestamp_updated": "2025-04-23T21:33:05.286950",
+  "timestamp_updated": "2025-04-24T14:24:26.788456",
   "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
   "platform": "Win32",
   "sessionState": {
@@ -10,7 +10,7 @@
         "value": "v1%3A174542487443920135",
         "domain": ".x.com",
         "path": "/",
-        "expires": 1780025556.792683,
+        "expires": 1780085946.089462,
         "httpOnly": false,
         "secure": true,
         "sameSite": "None"
@@ -20,7 +20,7 @@
         "value": "v1%3A174542487443920135",
         "domain": ".x.com",
         "path": "/",
-        "expires": 1780025556.792593,
+        "expires": 1780085946.089399,
         "httpOnly": false,
         "secure": true,
         "sameSite": "None"
@@ -116,16 +116,6 @@
         "sameSite": "Lax"
       },
       {
-        "name": "att",
-        "value": "1-yaWz0BEPuXyQBRPhh1gnlQDTAg1ApnZKyLzN1hdc",
-        "domain": ".x.com",
-        "path": "/",
-        "expires": 1745511321.135816,
-        "httpOnly": true,
-        "secure": true,
-        "sameSite": "None"
-      },
-      {
         "name": "lang",
         "value": "en",
         "domain": "x.com",
@@ -140,7 +130,7 @@
         "value": "u%3D1913996697761390592",
         "domain": ".x.com",
         "path": "/",
-        "expires": 1777001556.792711,
+        "expires": 1777061946.089487,
         "httpOnly": false,
         "secure": true,
         "sameSite": "None"
@@ -150,7 +140,7 @@
         "value": "u%3D1913996697761390592",
         "domain": ".twitter.com",
         "path": "/",
-        "expires": 1780025557.120901,
+        "expires": 1780085945.379283,
         "httpOnly": false,
         "secure": true,
         "sameSite": "None"
@@ -162,16 +152,6 @@
         "path": "/",
         "expires": 1776960921.906796,
         "httpOnly": false,
-        "secure": true,
-        "sameSite": "None"
-      },
-      {
-        "name": "IDE",
-        "value": "AHWqTUky_-DCUr8hOEhV0-psI97CDHyYJT8OH3Vzp0cqGdDJLZ17v8-IOqm-Ah5RBp0",
-        "domain": ".doubleclick.net",
-        "path": "/",
-        "expires": 1779984922.375553,
-        "httpOnly": true,
         "secure": true,
         "sameSite": "None"
       },
@@ -216,21 +196,31 @@
         "sameSite": "Lax"
       },
       {
-        "name": "__cf_bm",
-        "value": "BSQgFiiFulhjUbmWhB2RJPfWr6JQpRbr_RJQOZE47S4-1745465540-1.0.1.1-DW7M2Oxw70CezDsycIIQnT4bz3xF8zkgkD_072flejFIvrsZgiT5eipD3C2FlWKDlqUgVzcffocz844dec8.Fp9GRpIRbkJFKcg6gIXukQA",
-        "domain": ".twitter.com",
+        "name": "IDE",
+        "value": "AHWqTUmhPKNW9AgLI4F8Z-UXwNvUYB61PxOU6nIJV5-3sfoy5-RdVlpXkdX1jDuUcGM",
+        "domain": ".doubleclick.net",
         "path": "/",
-        "expires": 1745467339.45482,
+        "expires": 1780076833.477859,
         "httpOnly": true,
         "secure": true,
         "sameSite": "None"
       },
       {
         "name": "__cf_bm",
-        "value": "uYcDfSRAT8kLMT9Gg_k9awgmk_Auh1KCBAzVfXuILdE-1745465582-1.0.1.1-FsuhnT7QEDV7BiA0G.qDksNJi4RvrR57EIr8EWVmuPF3_j7.6tBH2Y0HkoZrNikrslSoIf.Tc_d2TtjhBI3_Od0bmwbHBMkdkSrck.0U5BM",
+        "value": "T7lmw2.1JAfKPJgJih2y0ieYsXVyTsfo4.hO29fB_L0-1745525944-1.0.1.1-LoIcIKWVO49XW76BUunSVEacPS8vijup_nUK0ScZeFEwaPQWDYQ__iJgPencdXtCYsy6LBaZxqcWDWBcr40ftyHGehfSfKAQnNbANZhI02Y",
+        "domain": ".twitter.com",
+        "path": "/",
+        "expires": 1745527745.379358,
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "None"
+      },
+      {
+        "name": "__cf_bm",
+        "value": "MYLSBo9N6obTWTR7Y3xbRENfCv5CaJIIOsLo6DxR1UA-1745526244-1.0.1.1-u7My4GdaJ2UcrjvV3cZ5KPOhB_gkHJt8wWd30PoYrUxFUeOo8I74YcV4Huv8qXKtgsit3jc8T7cb70mBFW6Kn0SH7OUNekymHYlboFD_Wi8",
         "domain": ".x.com",
         "path": "/",
-        "expires": 1745467382.034968,
+        "expires": 1745528045.295849,
         "httpOnly": true,
         "secure": true,
         "sameSite": "None"

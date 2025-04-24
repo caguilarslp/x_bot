@@ -1,38 +1,43 @@
 {
     "session_config": {
-        "max_actions_per_session": 50,
-        "session_duration_hours": 4
+      "max_actions_per_session": 50,
+      "session_duration_hours": 4
     },
     "action_delay": {
-        "min": 2,
-        "max": 10
+      "min": 2,
+      "max": 10
     },
     "detection_risk_threshold": 0.7,
     "action_types": {
-        "follow": {
-            "max_per_hour": 10,
-            "cool_down_time": 300,
-            "risk_level": 0.6
-        },
-        "like": {
-            "max_per_hour": 30,
-            "cool_down_time": 120,
-            "risk_level": 0.4
-        },
-        "comment": {
-            "max_per_hour": 5,
-            "cool_down_time": 600,
-            "risk_level": 0.8
-        }
+      "follow": {
+        "max_per_hour": 10,
+        "cool_down_time": 300,
+        "risk_level": 0.6
+      },
+      "like": {
+        "max_per_hour": 30,
+        "cool_down_time": 120,
+        "risk_level": 0.4
+      },
+      "comment": {
+        "max_per_hour": 5,
+        "cool_down_time": 600,
+        "risk_level": 0.8
+      }
     },
     "interaction_patterns": {
-        "follow_like_ratio": 0.3,
-        "comment_like_ratio": 0.1
+      "follow_like_ratio": 0.3,
+      "comment_like_ratio": 0.1
     },
     "logging": {
-        "log_directory": "logs/actions",
-        "log_level": "INFO",
-        "max_log_files": 10,
-        "max_log_size_mb": 50
+      "log_directory": "logs/actions",
+      "log_level": "INFO",
+      "max_log_files": 10,
+      "max_log_size_mb": 50
+    },
+    "timeouts": {
+      "element_visible_ms": 5000,
+      "navigation_timeout_ms": 20000
     }
-}
+  }
+  

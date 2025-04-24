@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import asyncio
 import random
 import logging
@@ -545,7 +542,17 @@ class SocialActions:
             # Esperar un tiempo aleatorio entre scrolls
             await self._human_delay(1, 3)
    
-    async def perform_like(self, post_count=1):
+   
+    async def perform_like(self, post_count: int = 1):
+        """
+        Dar likes a las publicaciones en el perfil actual.
+
+        Args:
+            post_count: Número de likes a dar
+
+        Returns:
+            dict: Resultado con estadísticas de likes
+        """
         # Verificar riesgo de la acción
         if not self._check_action_risk("like"):
             return {
@@ -553,94 +560,68 @@ class SocialActions:
                 "action": "like",
                 "message": "Acción denegada por riesgo de detección"
             }
-        
+
         try:
             self.logger.info(f"Buscando {post_count} publicaciones para dar like")
-            
-            # Realizar scroll para cargar más publicaciones
-            #await self._random_scroll()
-            
-            # Buscar todos los botones de like disponibles
+
+            # Obtener todos los botones de like disponibles
             like_buttons = await self._find_element("like")
-            
             if not like_buttons:
                 return {
                     "status": "error",
                     "action": "like",
                     "message": "No se encontraron botones de like"
                 }
-            
+
             total_buttons = await like_buttons.count()
             self.logger.info(f"Se encontraron {total_buttons} botones de like")
-            
-            # Si no hay suficientes, hacer más scroll
+
+            # Si no hay suficientes botones, scroll extra
             if total_buttons < post_count:
-                self.logger.debug("Haciendo más scroll para encontrar más publicaciones")
+                self.logger.debug("Haciendo más scroll para cargar más publicaciones")
                 await self._random_scroll(3, 6)
                 like_buttons = await self._find_element("like")
                 total_buttons = await like_buttons.count() if like_buttons else 0
-            
-            # Inicializar contadores
+
+            # Determinar cuántos likes podemos dar
+            target_count = min(post_count, total_buttons)
+
             likes_given = 0
             already_liked = 0
-            
-            # Limitar el número de likes al mínimo entre el conteo solicitado y disponible
-            target_count = min(post_count, total_buttons)
-            
-            # Elegir botones aleatorios si hay más de los necesarios
+
+            # Selección aleatoria de índices de botones si hay más de los necesarios
             if total_buttons > target_count:
                 indices = random.sample(range(total_buttons), target_count)
             else:
                 indices = list(range(target_count))
-            
-            for index in indices:
-                self.logger.info(f"Liking post {likes_given+1}/{post_count} (button index {index})")
-                button = like_buttons.nth(index)
-                
-                # Verificar si ya le dimos like 
-                try:
-                    is_liked = await button.get_attribute("aria-pressed") == "true"
-                    if is_liked:
-                        already_liked += 1
-                        continue
-                except Exception:
-                    # Si no podemos verificar, intentar de todos modos
-                    pass
-                
-                # Simular comportamiento humano antes de hacer clic
-                await self._human_delay(1, 2.5)
-                
+
+            # Iterar con enumerate para llevar el conteo de intentos
+            for attempt, button_index in enumerate(indices, start=1):
+                self.logger.info(f"Liking post {attempt}/{post_count} (button index {button_index})")
+                button = like_buttons.nth(button_index)
+
+                # Delay humano ligero antes de hacer clic
+                await self._human_delay(0.5, 1)
+
                 # Dar like
                 await button.click()
-                self.logger.info(f"Like #{likes_given+1} successful")
-                
-                # Esperar un poco después del like
-                await self._human_delay(0.5, 1.5)
-                
-                # Verificar si el like fue exitoso
-                try:
-                    if await button.get_attribute("aria-pressed") == "true":
-                        likes_given += 1
-                        self.logger.debug(f"Like exitoso #{likes_given}")
-                        
-                        # Registrar la acción
-                        result = {
-                            "status": "success",
-                            "action": "like",
-                            "post_index": likes_given,
-                            "timestamp": datetime.now().isoformat()
-                        }
-                        self._log_action("like", result)
-                        self.actions_performed += 1
-                    else:
-                        self.logger.debug("Like posiblemente fallido")
-                except Exception as e:
-                    self.logger.debug(f"Error al verificar resultado del like: {e}")
-                
-                # Si ya hemos dado suficientes likes, parar
+                self.logger.info(f"Like #{attempt} successful")
+
+                # Registrar inmediatamente el like
+                likes_given += 1
+                result = {
+                    "status": "success",
+                    "action": "like",
+                    "post_index": likes_given,
+                    "timestamp": datetime.now().isoformat()
+                }
+                self._log_action("like", result)
+                self.actions_performed += 1
+
+                # Si ya dimos todos los likes requeridos, salir del bucle
                 if likes_given >= post_count:
                     break
-            
+
             # Resultado final
             return {
                 "status": "success",
@@ -653,14 +634,131 @@ class SocialActions:
                 },
                 "timestamp": datetime.now().isoformat()
             }
-            
+
         except Exception as e:
             self.logger.error(f"Error al dar likes: {e}")
             return {
                 "status": "error",
                 "action": "like",
                 "message": str(e)
-            }   
+            }
+   
+    # async def perform_like(self, post_count=1):
+    #     # Verificar riesgo de la acción
+    #     if not self._check_action_risk("like"):
+    #         return {
+    #             "status": "error",
+    #             "action": "like",
+    #             "message": "Acción denegada por riesgo de detección"
+    #         }
+        
+    #     try:
+    #         self.logger.info(f"Buscando {post_count} publicaciones para dar like")
+            
+    #         # Realizar scroll para cargar más publicaciones
+    #         #await self._random_scroll()
+            
+    #         # Buscar todos los botones de like disponibles
+    #         like_buttons = await self._find_element("like")
+            
+    #         if not like_buttons:
+    #             return {
+    #                 "status": "error",
+    #                 "action": "like",
+    #                 "message": "No se encontraron botones de like"
+    #             }
+            
+    #         total_buttons = await like_buttons.count()
+    #         self.logger.info(f"Se encontraron {total_buttons} botones de like")
+            
+    #         # Si no hay suficientes, hacer más scroll
+    #         if total_buttons < post_count:
+    #             self.logger.debug("Haciendo más scroll para encontrar más publicaciones")
+    #             await self._random_scroll(3, 6)
+    #             like_buttons = await self._find_element("like")
+    #             total_buttons = await like_buttons.count() if like_buttons else 0
+            
+    #         # Inicializar contadores
+    #         likes_given = 0
+    #         already_liked = 0
+            
+    #         # Limitar el número de likes al mínimo entre el conteo solicitado y disponible
+    #         target_count = min(post_count, total_buttons)
+            
+    #         # Elegir botones aleatorios si hay más de los necesarios
+    #         if total_buttons > target_count:
+    #             indices = random.sample(range(total_buttons), target_count)
+    #         else:
+    #             indices = list(range(target_count))
+            
+    #         for index in indices:
+    #             self.logger.info(f"Liking post {likes_given+1}/{post_count} (button index {index})")
+    #             button = like_buttons.nth(index)
+                
+    #             # Verificar si ya le dimos like 
+    #             try:
+    #                 is_liked = await button.get_attribute("aria-pressed") == "true"
+    #                 if is_liked:
+    #                     already_liked += 1
+    #                     continue
+    #             except Exception:
+    #                 # Si no podemos verificar, intentar de todos modos
+    #                 pass
+                
+    #             # Simular comportamiento humano antes de hacer clic
+    #             await self._human_delay(1, 2.5)
+                
+    #             # Dar like
+    #             await button.click()
+    #             self.logger.info(f"Like #{likes_given+1} successful")
+                
+    #             # Esperar un poco después del like
+    #             await self._human_delay(0.5, 1.5)
+                
+    #             # Verificar si el like fue exitoso
+    #             try:
+    #                 if await button.get_attribute("aria-pressed") == "true":
+    #                     likes_given += 1
+    #                     self.logger.debug(f"Like exitoso #{likes_given}")
+                        
+    #                     # Registrar la acción
+    #                     result = {
+    #                         "status": "success",
+    #                         "action": "like",
+    #                         "post_index": likes_given,
+    #                         "timestamp": datetime.now().isoformat()
+    #                     }
+    #                     self._log_action("like", result)
+    #                     self.actions_performed += 1
+    #                 else:
+    #                     self.logger.debug("Like posiblemente fallido")
+    #             except Exception as e:
+    #                 self.logger.debug(f"Error al verificar resultado del like: {e}")
+                
+    #             # Si ya hemos dado suficientes likes, parar
+    #             if likes_given >= post_count:
+    #                 break
+            
+    #         # Resultado final
+    #         return {
+    #             "status": "success",
+    #             "action": "like",
+    #             "statistics": {
+    #                 "requested": post_count,
+    #                 "available": total_buttons,
+    #                 "liked": likes_given,
+    #                 "already_liked": already_liked
+    #             },
+    #             "timestamp": datetime.now().isoformat()
+    #         }
+            
+    #     except Exception as e:
+    #         self.logger.error(f"Error al dar likes: {e}")
+    #         return {
+    #             "status": "error",
+    #             "action": "like",
+    #             "message": str(e)
+    #         }   
   
   
     async def comment_on_post(self, index=0, comment_text=""):

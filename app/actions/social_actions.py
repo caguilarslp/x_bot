@@ -34,16 +34,71 @@ class SocialActions:
         self.actions_performed = 0
         self.action_log = []
         
-        # Selectores XPath para interacciones sociales
+        # Estructura de selectores más robusta
         self.selectors = {
-            "follow": '//button[@data-testid="1589450359-follow"]',
-            "following": '//button[@data-testid="1626214836-unfollow"]',
-            "like": '//button[@data-testid="like"]',
-            "reply": '//button[@data-testid="reply"]',
-            "comment_field": '//div[@data-testid="tweetTextarea_0"]',
-            "send_comment": '//button[@data-testid="tweetButton"]',
-            "close_modal": '//button[@data-testid="app-bar-close"]',
-            "tweet_articles": '//article[@data-testid="tweet"]'
+            "follow": {
+                "primary": '//button[@data-testid="1589450359-follow"]',
+                "fallback": [
+                    '//button[contains(@aria-label, "Follow")]',
+                    '//button[contains(text(), "Follow")]',
+                    '//div[contains(@class, "follow-button")]//button',
+                    '//a[contains(@href, "/follow")]'
+                ]
+            },
+            "following": {
+                "primary": '//button[@data-testid="1626214836-unfollow"]',
+                "fallback": [
+                    '//button[contains(@aria-label, "Following")]',
+                    '//button[contains(text(), "Following")]',
+                    '//button[contains(@class, "following-btn")]'
+                ]
+            },
+            "like": {
+                "primary": '//button[@data-testid="like"]',
+                "fallback": [
+                    '//button[@aria-label="Like"]',
+                    '//div[@role="button"][contains(@aria-label, "Like")]',
+                    '//span[contains(@aria-label, "Like")]//parent::button'
+                ]
+            },
+            "tweet_articles": {
+                "primary": '//article[@data-testid="tweet"]',
+                "fallback": [
+                    '//div[@role="article"]',
+                    '//div[contains(@class, "tweet")]',
+                    '//div[contains(@class, "tweet-container")]'
+                ]
+            },
+            "reply": {
+                "primary": '//button[@data-testid="reply"]',
+                "fallback": [
+                    '//button[@aria-label="Reply"]',
+                    '//div[@role="button"][contains(@aria-label, "Reply")]'
+                ]
+            },
+            "comment_field": {
+                "primary": '//div[@data-testid="tweetTextarea_0"]',
+                "fallback": [
+                    '//div[@role="textbox"][contains(@aria-label, "Tweet text")]',
+                    '//textarea[@name="tweet"]',
+                    '//div[contains(@aria-label, "Add a comment")]'
+                ]
+            },
+            "send_comment": {
+                "primary": '//button[@data-testid="tweetButton"]',
+                "fallback": [
+                    '//button[contains(text(), "Tweet")]',
+                    '//button[@aria-label="Tweet"]',
+                    '//button[contains(@class, "tweet-btn")]'
+                ]
+            },
+            "close_modal": {
+                "primary": '//button[@data-testid="app-bar-close"]',
+                "fallback": [
+                    '//button[@aria-label="Close"]',
+                    '//button[contains(@class, "close-modal")]'
+                ]
+            }
         }
     
     def _load_config(self, config_path):
@@ -240,6 +295,101 @@ class SocialActions:
                     json.dump([action_record], f, indent=2)
         except Exception as e:
             self.logger.error(f"Error al guardar log de acción: {e}")
+            
+            
+            
+    async def _find_element(self, selector_key, context=None, parent_context=None):
+        """
+        Buscar un elemento con estrategia de selectores múltiples.
+        
+        Args:
+            selector_key: Clave del selector en self.selectors
+            context: Contexto de búsqueda (página o elemento padre)
+            parent_context: Contexto padre opcional
+        
+        Returns:
+            Localizador del elemento o None
+        """
+        # Definir el contexto de búsqueda
+        search_context = context if context is not None else (parent_context if parent_context is not None else self.page)
+        
+        # Obtener la configuración de selectores para esta clave
+        selector_config = self.selectors.get(selector_key, None)
+        if not selector_config:
+            self.logger.error(f"No se encontró configuración de selector para: {selector_key}")
+            return None
+        
+        # Intentar selector principal
+        try:
+            primary_selector = selector_config.get('primary')
+            if primary_selector:
+                try:
+                    # Intentar con selector primario en XPath
+                    elements = search_context.locator(f'xpath={primary_selector}')
+                    if await elements.count() > 0:
+                        self.logger.debug(f"Elemento encontrado con selector principal para {selector_key}")
+                        return elements
+                except Exception as e:
+                    self.logger.warning(f"Error con selector principal de {selector_key}: {e}")
+        except Exception:
+            pass
+        
+        # Intentar selectores de respaldo
+        try:
+            fallback_selectors = selector_config.get('fallback', [])
+            for fallback_selector in fallback_selectors:
+                elements = search_context.locator(f'xpath={fallback_selector}')
+                if await elements.count() > 0:
+                    return elements
+
+        except Exception as e:
+                    self.logger.debug(f"Selector de respaldo fallido: {fallback_selector} - {e}")
+        except Exception:
+            pass
+        
+        # Si no se encuentra ningún selector
+        self.logger.error(f"No se encontró elemento para {selector_key}")
+        return None
+    
+    
+    
+    async def _capture_page_html(self, filename=None):
+        """
+        Capturar el HTML completo de la página actual.
+        
+        Args:
+            filename: Nombre del archivo para guardar. Si no se proporciona, 
+                    se generará automáticamente con marca de tiempo.
+        
+        Returns:
+            Ruta del archivo HTML guardado
+        """
+        # Crear directorio para capturas si no existe
+        captures_dir = Path('page_captures')
+        captures_dir.mkdir(exist_ok=True)
+        
+        # Generar nombre de archivo si no se proporciona
+        if filename is None:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"page_capture_{timestamp}.html"
+        
+        # Ruta completa del archivo
+        filepath = captures_dir / filename
+        
+        # Obtener contenido HTML
+        html_content = await self.page.content()
+        
+        # Guardar HTML
+        try:
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+            
+            self.logger.info(f"HTML capturado y guardado en: {filepath}")
+            return str(filepath)
+        except Exception as e:
+            self.logger.error(f"Error al capturar HTML: {e}")
+            return None
+    
     
     async def navigate_to_profile(self, username):
         """
@@ -277,16 +427,9 @@ class SocialActions:
             self.logger.error(f"Error al navegar al perfil @{username}: {e}")
             return False
     
+    
+   
     async def follow_user(self, username):
-        """
-        Seguir a un usuario específico.
-        
-        Args:
-            username: Nombre de usuario a seguir
-        
-        Returns:
-            dict: Resultado de la acción
-        """
         # Verificar riesgo de la acción
         if not self._check_action_risk("follow"):
             return {
@@ -312,12 +455,12 @@ class SocialActions:
             # Esperar a que la página cargue completamente
             await self._human_delay(2, 4)
             
-            # Buscar el botón de seguir
-            follow_button = await self.page.locator(self.selectors["follow"]).first
-            following_button = await self.page.locator(self.selectors["following"]).first
+            # Buscar botones de seguir y siguiendo
+            follow_button = await self._find_element("follow")
+            following_button = await self._find_element("following")
             
             # Verificar si ya estamos siguiendo al usuario
-            if following_button:
+            if following_button and await following_button.count() > 0:
                 self.logger.info(f"Ya estamos siguiendo a @{username}")
                 return {
                     "status": "info",
@@ -326,23 +469,23 @@ class SocialActions:
                     "message": "Ya siguiendo al usuario"
                 }
             
-            # Si no lo seguimos, hacer clic en el botón follow
-            if follow_button:
+            # Si no lo seguimos, buscar el botón de follow
+            if follow_button and await follow_button.count() > 0:
                 self.logger.info(f"Haciendo clic en el botón Follow para @{username}")
                 
                 # Simulación de comportamiento humano antes de hacer clic
                 await self._human_delay(1, 3)
                 
                 # Hacer clic en el botón
-                await follow_button.click()
+                await follow_button.first().click()
                 
                 # Esperar después del clic para ver el resultado
                 await self._human_delay(2, 4)
                 
                 # Verificar si el botón cambió a "Following"
-                following_check = await self.page.locator(self.selectors["following"]).first
+                following_check = await self._find_element("following")
                 
-                if following_check:
+                if following_check and await following_check.count() > 0:
                     result = {
                         "status": "success",
                         "action": "follow",
@@ -378,8 +521,10 @@ class SocialActions:
                 "action": "follow",
                 "username": username,
                 "message": str(e)
-            }
-    
+            }   
+   
+
+     
     async def _random_scroll(self, min_scrolls=2, max_scrolls=5, scroll_range_min=300, scroll_range_max=800):
         """
         Realizar scroll aleatorio en la página actual.
@@ -399,17 +544,8 @@ class SocialActions:
             
             # Esperar un tiempo aleatorio entre scrolls
             await self._human_delay(1, 3)
-    
+   
     async def perform_like(self, post_count=1):
-        """
-        Dar like a X número de publicaciones en la página actual.
-        
-        Args:
-            post_count: Número de publicaciones a las que dar like
-        
-        Returns:
-            dict: Resultado de la acción con estadísticas
-        """
         # Verificar riesgo de la acción
         if not self._check_action_risk("like"):
             return {
@@ -422,34 +558,46 @@ class SocialActions:
             self.logger.info(f"Buscando {post_count} publicaciones para dar like")
             
             # Realizar scroll para cargar más publicaciones
-            await self._random_scroll()
+            #await self._random_scroll()
             
             # Buscar todos los botones de like disponibles
-            like_buttons = await self.page.locator(self.selectors["like"]).all()
-            self.logger.info(f"Se encontraron {len(like_buttons)} botones de like")
+            like_buttons = await self._find_element("like")
+            
+            if not like_buttons:
+                return {
+                    "status": "error",
+                    "action": "like",
+                    "message": "No se encontraron botones de like"
+                }
+            
+            total_buttons = await like_buttons.count()
+            self.logger.info(f"Se encontraron {total_buttons} botones de like")
             
             # Si no hay suficientes, hacer más scroll
-            if len(like_buttons) < post_count:
+            if total_buttons < post_count:
                 self.logger.debug("Haciendo más scroll para encontrar más publicaciones")
                 await self._random_scroll(3, 6)
-                like_buttons = await self.page.locator(self.selectors["like"]).all()
+                like_buttons = await self._find_element("like")
+                total_buttons = await like_buttons.count() if like_buttons else 0
             
             # Inicializar contadores
             likes_given = 0
             already_liked = 0
             
             # Limitar el número de likes al mínimo entre el conteo solicitado y disponible
-            target_count = min(post_count, len(like_buttons))
+            target_count = min(post_count, total_buttons)
             
             # Elegir botones aleatorios si hay más de los necesarios
-            if len(like_buttons) > target_count:
-                indices = random.sample(range(len(like_buttons)), target_count)
-                selected_buttons = [like_buttons[i] for i in indices]
+            if total_buttons > target_count:
+                indices = random.sample(range(total_buttons), target_count)
             else:
-                selected_buttons = like_buttons
+                indices = list(range(target_count))
             
-            for button in selected_buttons:
-                # Verificar si ya le dimos like (generalmente por la clase o atributo)
+            for index in indices:
+                self.logger.info(f"Liking post {likes_given+1}/{post_count} (button index {index})")
+                button = like_buttons.nth(index)
+                
+                # Verificar si ya le dimos like 
                 try:
                     is_liked = await button.get_attribute("aria-pressed") == "true"
                     if is_liked:
@@ -460,13 +608,14 @@ class SocialActions:
                     pass
                 
                 # Simular comportamiento humano antes de hacer clic
-                await self._human_delay(1.5, 4)
+                await self._human_delay(1, 2.5)
                 
                 # Dar like
                 await button.click()
+                self.logger.info(f"Like #{likes_given+1} successful")
                 
                 # Esperar un poco después del like
-                await self._human_delay(0.5, 2)
+                await self._human_delay(0.5, 1.5)
                 
                 # Verificar si el like fue exitoso
                 try:
@@ -498,7 +647,7 @@ class SocialActions:
                 "action": "like",
                 "statistics": {
                     "requested": post_count,
-                    "available": len(like_buttons),
+                    "available": total_buttons,
                     "liked": likes_given,
                     "already_liked": already_liked
                 },
@@ -511,19 +660,10 @@ class SocialActions:
                 "status": "error",
                 "action": "like",
                 "message": str(e)
-            }
-    
+            }   
+  
+  
     async def comment_on_post(self, index=0, comment_text=""):
-        """
-        Comentar en una publicación específica.
-        
-        Args:
-            index: Índice de la publicación (0 para la primera visible)
-            comment_text: Texto del comentario
-        
-        Returns:
-            dict: Resultado de la acción
-        """
         # Verificar riesgo de la acción
         if not self._check_action_risk("comment"):
             return {
@@ -543,15 +683,25 @@ class SocialActions:
         try:
             self.logger.info(f"Intentando comentar en la publicación #{index}")
             
-            # Asegurarse de que hay publicaciones cargadas
-            tweets = await self.page.locator(self.selectors["tweet_articles"]).all()
+            # Buscar publicaciones
+            tweets = await self._find_element("tweet_articles")
             
-            if not tweets or len(tweets) <= index:
+            if not tweets:
+                return {
+                    "status": "error",
+                    "action": "comment",
+                    "message": "No se encontraron publicaciones"
+                }
+            
+            total_tweets = await tweets.count()
+            
+            if total_tweets == 0 or total_tweets <= index:
                 # Hacer scroll para cargar más
                 await self._random_scroll(3, 5)
-                tweets = await self.page.locator(self.selectors["tweet_articles"]).all()
+                tweets = await self._find_element("tweet_articles")
+                total_tweets = await tweets.count() if tweets else 0
             
-            if not tweets or len(tweets) <= index:
+            if total_tweets == 0 or total_tweets <= index:
                 return {
                     "status": "error",
                     "action": "comment",
@@ -559,12 +709,12 @@ class SocialActions:
                 }
             
             # Obtener la publicación objetivo
-            target_tweet = tweets[index]
+            target_tweet = tweets.nth(index)
             
             # Buscar el botón de reply dentro de esta publicación
-            reply_button = await target_tweet.locator(self.selectors["reply"]).first
+            reply_buttons = await self._find_element("reply")
             
-            if not reply_button:
+            if not reply_buttons:
                 return {
                     "status": "error",
                     "action": "comment",
@@ -574,15 +724,15 @@ class SocialActions:
             # Hacer clic en el botón de respuesta
             self.logger.debug("Haciendo clic en el botón de respuesta")
             await self._human_delay(1, 3)
-            await reply_button.click()
+            await reply_buttons.first().click()
             
             # Esperar a que aparezca el campo de comentario
             await self._human_delay(2, 4)
             
             # Buscar el campo de texto del comentario
-            comment_field = await self.page.locator(self.selectors["comment_field"]).first
+            comment_fields = await self._find_element("comment_field")
             
-            if not comment_field:
+            if not comment_fields:
                 return {
                     "status": "error",
                     "action": "comment",
@@ -590,6 +740,7 @@ class SocialActions:
                 }
             
             # Escribir el comentario con simulación de escritura humana
+            comment_field = comment_fields.first()
             self.logger.debug(f"Escribiendo comentario: {comment_text}")
             await self._human_typing(comment_field, comment_text)
             
@@ -597,14 +748,14 @@ class SocialActions:
             await self._human_delay(1, 3)
             
             # Buscar el botón de enviar comentario
-            send_button = await self.page.locator(self.selectors["send_comment"]).first
+            send_buttons = await self._find_element("send_comment")
             
-            if not send_button:
+            if not send_buttons:
                 # Intentar cerrar el modal si no podemos comentar
                 try:
-                    close_button = await self.page.locator(self.selectors["close_modal"]).first
-                    if close_button:
-                        await close_button.click()
+                    close_buttons = await self._find_element("close_modal")
+                    if close_buttons:
+                        await close_buttons.first().click()
                 except Exception:
                     pass
                 
@@ -615,13 +766,15 @@ class SocialActions:
                 }
             
             # Comprobar si el botón está deshabilitado
+            send_button = send_buttons.first()
             is_disabled = await send_button.get_attribute("disabled") == "true"
+            
             if is_disabled:
                 # Intentar cerrar el modal
                 try:
-                    close_button = await self.page.locator(self.selectors["close_modal"]).first
-                    if close_button:
-                        await close_button.click()
+                    close_buttons = await self._find_element("close_modal")
+                    if close_buttons:
+                        await close_buttons.first().click()
                 except Exception:
                     pass
                 
@@ -657,9 +810,9 @@ class SocialActions:
             
             # Intentar cerrar el modal si hubo error
             try:
-                close_button = await self.page.locator(self.selectors["close_modal"]).first
-                if close_button:
-                    await close_button.click()
+                close_buttons = await self._find_element("close_modal")
+                if close_buttons:
+                    await close_buttons.first().click()
             except Exception:
                 pass
             
@@ -667,74 +820,9 @@ class SocialActions:
                 "status": "error",
                 "action": "comment",
                 "message": str(e)
-            }
-    
-    async def interact_with_profile(self, username, actions=None):
-        """
-        Realizar múltiples interacciones con un perfil específico.
-        
-        Args:
-            username: Nombre de usuario con el que interactuar
-            actions: Diccionario con acciones a realizar y sus parámetros
-                    Ejemplo: {
-                        "follow": True,
-                        "like": 2,
-                        "comment": "Gran contenido!"
-                    }
-        
-        Returns:
-            dict: Resultado de las interacciones
-        """
-        if actions is None:
-            actions = {"follow": True}
-        
-        results = {
-            "profile": username,
-            "actions": []
-        }
-        
-        try:
-            # Navegar al perfil
-            success = await self.navigate_to_profile(username)
-            if not success:
-                return {
-                    "status": "error",
-                    "message": f"No se pudo navegar al perfil de @{username}"
-                }
-            
-            # Esperar a que la página cargue completamente
-            await self._human_delay(2, 4)
-            
-            # Follow si está especificado
-            if "follow" in actions and actions["follow"] is True:
-                result = await self.follow_user(username)
-                if result:
-                    results["actions"].append(result)
-            
-            # Realizar scroll para ver publicaciones
-            await self._random_scroll(2, 4)
-            
-            # Dar likes si está especificado
-            if "like" in actions and actions["like"] > 0:
-                like_result = await self.perform_like(actions["like"])
-                results["actions"].append(like_result)
-            
-            # Comentar si está especificado
-            if "comment" in actions and actions["comment"]:
-                comment_result = await self.comment_on_post(0, actions["comment"])
-                results["actions"].append(comment_result)
-            
-            # Establecer estado general
-            results["status"] = "success"
-            return results
-            
-        except Exception as e:
-            self.logger.error(f"Error en interacción con @{username}: {e}")
-            return {
-                "status": "error",
-                "profile": username,
-                "message": str(e)
-            }
+            }  
+  
+  
     
     async def batch_interact(self, profiles, action_template=None):
         """

@@ -1,0 +1,19 @@
+{
+    "profiles": [
+      "AlexisRivPon",
+      "DanielAlan05"
+    ],
+    "template": {
+      "follow": true,
+      "like": 2,
+      "comment": true
+    },
+    "config": {
+      "delay_between_profiles": {
+        "min": 30,
+        "max": 60
+      },
+      "randomize_order": true,
+      "stop_on_failure": false
+    }
+  }

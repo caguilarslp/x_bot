@@ -14,11 +14,6 @@
             "cool_down_time": 300,
             "risk_level": 0.6
         },
-        "unfollow": {
-            "max_per_hour": 5,
-            "cool_down_time": 600,
-            "risk_level": 0.7
-        },
         "like": {
             "max_per_hour": 30,
             "cool_down_time": 120,
@@ -28,11 +23,6 @@
             "max_per_hour": 5,
             "cool_down_time": 600,
             "risk_level": 0.8
-        },
-        "retweet": {
-            "max_per_hour": 15,
-            "cool_down_time": 240,
-            "risk_level": 0.5
         }
     },
     "interaction_patterns": {
@@ -44,9 +34,5 @@
         "log_level": "INFO",
         "max_log_files": 10,
         "max_log_size_mb": 50
-    },
-    "proxy_rotation": {
-        "enabled": true,
-        "rotate_every_minutes": 30
     }
 }

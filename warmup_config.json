@@ -1,0 +1,148 @@
+{
+    "phases": {
+      "1": {
+        "days": {
+          "1": {
+            "profile_visits": {"min": 5, "max": 8},
+            "feed_scrolls": {"min": 3, "max": 7},
+            "post_views": {"min": 8, "max": 15},
+            "follows": {"min": 0, "max": 0},
+            "likes": {"min": 0, "max": 0},
+            "comments": {"min": 0, "max": 0}
+          },
+          "2": {
+            "profile_visits": {"min": 6, "max": 10},
+            "feed_scrolls": {"min": 4, "max": 8},
+            "post_views": {"min": 10, "max": 18},
+            "follows": {"min": 2, "max": 5},
+            "likes": {"min": 0, "max": 0},
+            "comments": {"min": 0, "max": 0}
+          },
+          "3": {
+            "profile_visits": {"min": 8, "max": 12},
+            "feed_scrolls": {"min": 5, "max": 10},
+            "post_views": {"min": 12, "max": 20},
+            "follows": {"min": 3, "max": 6},
+            "likes": {"min": 1, "max": 3},
+            "comments": {"min": 0, "max": 0}
+          }
+        }
+      },
+      "2": {
+        "days": {
+          "1": {
+            "profile_visits": {"min": 10, "max": 15},
+            "feed_scrolls": {"min": 6, "max": 12},
+            "post_views": {"min": 15, "max": 25},
+            "follows": {"min": 5, "max": 8},
+            "likes": {"min": 3, "max": 7},
+            "comments": {"min": 0, "max": 1}
+          },
+          "2": {
+            "profile_visits": {"min": 12, "max": 18},
+            "feed_scrolls": {"min": 8, "max": 15},
+            "post_views": {"min": 18, "max": 30},
+            "follows": {"min": 6, "max": 10},
+            "likes": {"min": 5, "max": 10},
+            "comments": {"min": 1, "max": 2}
+          },
+          "3": {
+            "profile_visits": {"min": 15, "max": 20},
+            "feed_scrolls": {"min": 10, "max": 18},
+            "post_views": {"min": 20, "max": 35},
+            "follows": {"min": 8, "max": 12},
+            "likes": {"min": 8, "max": 15},
+            "comments": {"min": 2, "max": 4}
+          }
+        }
+      },
+      "3": {
+        "days": {
+          "1": {
+            "profile_visits": {"min": 15, "max": 25},
+            "feed_scrolls": {"min": 12, "max": 20},
+            "post_views": {"min": 25, "max": 40},
+            "follows": {"min": 10, "max": 15},
+            "likes": {"min": 10, "max": 20},
+            "comments": {"min": 3, "max": 5}
+          },
+          "2": {
+            "profile_visits": {"min": 20, "max": 30},
+            "feed_scrolls": {"min": 15, "max": 25},
+            "post_views": {"min": 30, "max": 50},
+            "follows": {"min": 12, "max": 18},
+            "likes": {"min": 15, "max": 25},
+            "comments": {"min": 4, "max": 8}
+          },
+          "3": {
+            "profile_visits": {"min": 25, "max": 35},
+            "feed_scrolls": {"min": 18, "max": 30},
+            "post_views": {"min": 35, "max": 60},
+            "follows": {"min": 15, "max": 20},
+            "likes": {"min": 20, "max": 30},
+            "comments": {"min": 5, "max": 10}
+          }
+        }
+      }
+    },
+    "target_accounts": {
+      "influencers": [
+        "LuisitoComunica", "EugenioDerbez", "dannapaola", "Thalia",
+        "yuyacst", "Arigameplays", "JuanpaZurita", "alexoficial",
+        "belindapop", "PatyCantu", "ADeLaReguera"
+      ],
+      "news": [
+        "CarlosLoret", "AristeguiOnline", "Adela_Micha", "ChumelTorres",
+        "DeniseDresserG", "PaolaRojas", "MarthaDebayle", "jorgeramosnews",
+        "lopezdoriga", "CiroGomezL", "beltrandelrio", "SalCamarena"
+      ],
+      "politicians": [
+        "lopezobrador_", "Claudiashein", "RicardoBSalinas", "m_ebrard",
+        "tatclouthier", "JoseRLopezB", "AlfonsoDurazo", "JLozanoA",
+        "JavierSicilia", "BeatrizGMuller", "SNietoCastillo", "zoerobledo"
+      ],
+      "brands": [
+        "CocaColaMx", "AeroMexico", "Liverpool_Mexico", "XboxMexico",
+        "gruposalinas", "PromericaMEX", "Cinemex", "NetflixLAT",
+        "BimboMx", "TelcelMX", "BancaAztecaMx", "ElPalaciodeHierro"
+      ]
+    },
+    "delays": {
+      "between_actions": {"min": 2, "max": 8},
+      "between_profiles": {"min": 5, "max": 15},
+      "viewing_post": {"min": 3, "max": 12},
+      "before_like": {"min": 2, "max": 7},
+      "before_follow": {"min": 3, "max": 8},
+      "before_comment": {"min": 5, "max": 15}
+    },
+    "comments": {
+      "generic": [
+        "Completamente de acuerdo 👍",
+        "Excelente información, gracias por compartir",
+        "No lo había visto desde esta perspectiva 🤔",
+        "Muy interesante tu punto de vista",
+        "Increíble análisis 👏",
+        "Gracias por la información, muy valiosa",
+        "Totalmente de acuerdo con tu opinión",
+        "Contenido de calidad como siempre",
+        "Me encanta tu forma de explicarlo"
+      ],
+      "positive": [
+        "¡Excelente publicación! 👏",
+        "Me encanta este contenido 🔥",
+        "Gran aporte, como siempre",
+        "Increíble información, gracias 👍",
+        "Excelente labor, licenciado!!!",
+        "Siempre con el mejor contenido 💯",
+        "Definitivamente de lo mejor que he visto hoy",
+        "Sigue compartiendo contenido así 👌"
+      ]
+    },
+    "behavior": {
+      "random_scroll_distance": {"min": 300, "max": 800},
+      "read_post_probability": 0.6,
+      "return_to_home_probability": 0.3,
+      "typing_speed": {"min": 0.05, "max": 0.15},
+      "error_correction_probability": 0.02
+    }
+  }

@@ -594,8 +594,17 @@ def list_sessions():
         try:
             with open(file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            timestamp = datetime.fromisoformat(data['timestamp'])
-            age_hours = (datetime.now() - timestamp).total_seconds() / 3600
+            
+            # Usar timestamp_updated si existe, o timestamp original si no
+            if 'timestamp_updated' in data:
+                timestamp = datetime.fromisoformat(data['timestamp_updated'])
+                original_timestamp = datetime.fromisoformat(data['timestamp'])
+                age_hours = (datetime.now() - timestamp).total_seconds() / 3600
+                is_updated = True
+            else:
+                timestamp = datetime.fromisoformat(data['timestamp'])
+                age_hours = (datetime.now() - timestamp).total_seconds() / 3600
+                is_updated = False
             
             # Intentar extraer el nombre de usuario del archivo
             filename = file.name
@@ -610,7 +619,8 @@ def list_sessions():
                 'name': file.name,
                 'username': username,
                 'time': timestamp,
-                'age_hours': age_hours
+                'age_hours': age_hours,
+                'is_updated': is_updated
             })
         except Exception as e:
             logger.error(f"Error al leer {file.name}: {e}")
@@ -625,7 +635,12 @@ def list_sessions():
     print("\n=== Sesiones disponibles ===")
     for i, session in enumerate(session_files):
         status = "🟢" if session['age_hours'] < 12 else "🟠" if session['age_hours'] < 24 else "🔴"
-        print(f"{i+1}. {status} {session['username']} - {session['name']} - {session['time'].strftime('%Y-%m-%d %H:%M')} ({session['age_hours']:.1f} horas)")
+        
+        # Mostrar información de actualización
+        if session['is_updated']:
+            print(f"{i+1}. {status} {session['username']} - {session['name']} - Actualizada: {session['time'].strftime('%Y-%m-%d %H:%M')} ({session['age_hours']:.1f} horas)")
+        else:
+            print(f"{i+1}. {status} {session['username']} - {session['name']} - Creada: {session['time'].strftime('%Y-%m-%d %H:%M')} ({session['age_hours']:.1f} horas)")
     print("")
 
 # Punto de entrada del script
@@ -688,13 +703,6 @@ if __name__ == "__main__":
             ))
 
 
-
-
-####################################################################
-#### antes profile actions
-####################################################################
-
-
 # import os
 # import json
 # import time
@@ -744,6 +752,23 @@ if __name__ == "__main__":
 #     except Exception as e:
 #         logger.error(f"Error al cargar el archivo de cuentas: {e}")
 #         return []
+
+# # Función para obtener el recover_user a partir del username
+# def get_recover_user(username):
+#     """
+#     Obtener el recover_user a partir del username en login_accounts.json.
+    
+#     Args:
+#         username: Nombre de usuario (email) para buscar
+    
+#     Returns:
+#         str: recover_user si se encuentra, None en caso contrario
+#     """
+#     accounts = load_accounts()
+#     for account in accounts:
+#         if account.get("username") == username:
+#             return account.get("recover_user")
+#     return None
 
 # # Función para seleccionar una cuenta de la lista (similar al script original)
 # def select_account(accounts):
@@ -951,7 +976,7 @@ if __name__ == "__main__":
 #         logger.info("No se configuró proxy o está desactivado.")
 #         return None
 
-# async def open_browser_with_session(headless=False, url=None, username=None, specific_session=None, keep_open=True, update_session=True):
+# async def open_browser_with_session(headless=False, url=None, username=None, specific_session=None, keep_open=True, update_session=True, return_page=False):
 #     """
 #     Abre un navegador con una sesión guardada de X.com.
     
@@ -962,6 +987,10 @@ if __name__ == "__main__":
 #         specific_session (str): Nombre específico del archivo de sesión a usar.
 #         keep_open (bool): Si mantener el navegador abierto hasta que el usuario lo cierre.
 #         update_session (bool): Si actualizar el archivo de sesión al cerrar o periódicamente.
+#         return_page (bool): Si devolver la página para operaciones adicionales.
+        
+#     Returns:
+#         Page: La página de Playwright si return_page es True, None en caso contrario.
 #     """
 #     # Cargar la sesión
 #     session_data = load_session(username, specific_session)
@@ -1136,6 +1165,10 @@ if __name__ == "__main__":
 #                     print("\n Sesión verificada mediante selectores específicos")
 #                 else:
 #                     print("\n No se pudo verificar la sesión. Verifica manualmente si estás conectado.")
+
+#             # Si se solicita retornar la página, hacerlo aquí
+#             if return_page:
+#                 return page
             
 #             if keep_open:
 #                 print("\nEl navegador permanecerá abierto hasta que presiones Enter para cerrarlo.")
@@ -1193,10 +1226,13 @@ if __name__ == "__main__":
 #             logger.error(f"Error durante la navegación: {e}")
 #             import traceback
 #             logger.error(traceback.format_exc())
+#             if return_page:
+#                 return None
         
 #         finally:
-#             await browser.close()
-#             logger.info("Navegador cerrado.")
+#             if not return_page:
+#                 await browser.close()
+#                 logger.info("Navegador cerrado.")
 
 # # Función auxiliar para actualizar el archivo de sesión
 # async def update_session_file(context, page, session_path, username):
@@ -1355,4 +1391,3 @@ if __name__ == "__main__":
 #                 url=args.url,
 #                 keep_open=not args.autoclose
 #             ))
-

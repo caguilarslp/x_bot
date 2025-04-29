@@ -1,0 +1,96 @@
+{
+  "username": "antonioreverteandujar@gmx.com",
+  "start_date": "2025-04-29",
+  "current_phase": 1,
+  "current_day": 2,
+  "history": [
+    {
+      "date": "2025-04-29",
+      "time": "13:14:36",
+      "phase": 1,
+      "day": 1,
+      "actions": {
+        "profile_visits": [],
+        "feed_activity": {
+          "scrolls_performed": 5,
+          "posts_viewed": 0,
+          "time_spent": 31.176027
+        },
+        "follows": [],
+        "likes": [],
+        "comments": []
+      }
+    },
+    {
+      "date": "2025-04-29",
+      "time": "13:37:40",
+      "phase": 1,
+      "day": 1,
+      "actions": {
+        "profile_visits": [],
+        "feed_activity": {
+          "scrolls_performed": 7,
+          "posts_viewed": 0,
+          "time_spent": 45.214738
+        },
+        "follows": [],
+        "likes": [],
+        "comments": []
+      }
+    },
+    {
+      "date": "2025-04-29",
+      "time": "13:52:37",
+      "phase": 1,
+      "day": 1,
+      "actions": {
+        "profile_visits": [],
+        "feed_activity": {
+          "scrolls_performed": 6,
+          "posts_viewed": 0,
+          "time_spent": 32.584782
+        },
+        "follows": [],
+        "likes": [],
+        "comments": []
+      }
+    },
+    {
+      "date": "2025-04-29",
+      "time": "14:04:40",
+      "phase": 1,
+      "day": 1,
+      "actions": {
+        "profile_visits": [],
+        "feed_activity": {
+          "scrolls_performed": 5,
+          "posts_viewed": 1,
+          "time_spent": 31.441907
+        },
+        "follows": [],
+        "likes": [],
+        "comments": []
+      }
+    },
+    {
+      "date": "2025-04-29",
+      "time": "14:26:48",
+      "phase": 1,
+      "day": 1,
+      "actions": {
+        "profile_visits": [],
+        "feed_activity": {
+          "scrolls_performed": 5,
+          "posts_viewed": 3,
+          "time_spent": 57.839468
+        },
+        "follows": [],
+        "likes": [],
+        "comments": []
+      }
+    }
+  ],
+  "followed_accounts": [],
+  "liked_posts": [],
+  "commented_posts": []
+}
